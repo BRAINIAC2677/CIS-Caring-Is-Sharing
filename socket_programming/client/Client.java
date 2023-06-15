@@ -7,10 +7,9 @@ public class Client {
     public Client(String serverAddress, int serverPort) {
         try {
             NetworkUtil networkUtil = new NetworkUtil(serverAddress, serverPort);
-            new ReadThreadClient(networkUtil);
-            new WriteThreadClient(networkUtil, "Client");
-        } catch (Exception e) {
-            System.out.println(e);
+            new RequestSender(networkUtil);
+        } catch (Exception exception) {
+            exception.printStackTrace();
         }
     }
 
