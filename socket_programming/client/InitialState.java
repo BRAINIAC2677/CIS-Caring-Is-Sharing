@@ -9,7 +9,8 @@ class InitialState implements CLIState {
 
     @Override
     public void showPrompt() {
-        System.out.println("initial state");
+        String prompt = "cis | caring is sharing\nDo you want to login?(press l/L)\nDo you want to register?(press r/R)\nDo you want to quit?(press q/Q)";
+        System.out.println(prompt);
     }
 
     @Override

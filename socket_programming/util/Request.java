@@ -10,7 +10,6 @@ public class Request implements Serializable {
 
     public Request(String _verb) {
         this.verb = _verb;
-        this.parameters = null;
         this.body = null;
     }
 

@@ -27,6 +27,7 @@ public class NetworkUtil {
     }
 
     public void write(Object o) throws IOException {
+        oos.reset();
         oos.writeUnshared(o);
     }
 

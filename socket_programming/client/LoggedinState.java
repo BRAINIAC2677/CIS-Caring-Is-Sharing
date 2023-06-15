@@ -1,5 +1,7 @@
 package client;
 
+import util.*;
+
 class LoggedinState implements CLIState {
     private CLI cli;
 
@@ -9,7 +11,11 @@ class LoggedinState implements CLIState {
 
     @Override
     public void showPrompt() {
-        System.out.println("loggedin state");
+        User currentUser = this.cli.getCurrentUser();
+        if (currentUser != null) {
+            String prompt = currentUser.getUsername() + "@cis:~" + currentUser.getWorkingDir();
+            System.out.println(prompt);
+        }
     }
 
     @Override

@@ -9,16 +9,19 @@ class RegisterState implements CLIState {
 
     @Override
     public void showPrompt() {
-        System.out.println("register state");
+        String prompt = "cis | register\nEnter credentials\n<username> <password>\n";
+        System.out.println(prompt);
     }
 
     @Override
-    public void rightCredentials() {
+    public void succeed() {
+        System.out.println("successful registration! you are logged in!");
         this.cli.setState(this.cli.getLoggedinState());
     }
 
     @Override
-    public void wrongCredentials() {
-        this.cli.setState(this.cli.getRegisterState());
+    public void failed(String _cause) {
+        System.out.println(_cause);
+        this.cli.setState(this.cli.getInitialState());
     }
 }

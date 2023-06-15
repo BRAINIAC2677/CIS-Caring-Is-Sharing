@@ -9,17 +9,17 @@ public interface CLIState {
     public default void register() {
     }
 
-    public default void rightCredentials() {
+    public default void succeed() {
     }
 
-    public default void wrongCredentials() {
+    public default void failed(String _cause) {
     }
 
     public default void logout() {
     }
 
     public default void unknownCommand() {
-        System.out.println("unknown/invalid command");
+        System.out.println("unknown/invalid command.");
     }
 
 }

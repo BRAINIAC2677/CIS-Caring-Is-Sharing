@@ -1,6 +1,9 @@
 package client;
 
+import util.*;
+
 class CLI {
+    private User currentUser;
     private InitialState initialState;
     private LoginState loginState;
     private RegisterState registerState;
@@ -8,11 +11,29 @@ class CLI {
     private CLIState state;
 
     CLI() {
+        this.currentUser = null;
         this.initialState = new InitialState(this);
         this.loginState = new LoginState(this);
         this.registerState = new RegisterState(this);
         this.loggedinState = new LoggedinState(this);
         this.setState(this.initialState);
+    }
+
+    void setCurrentUser(User _currentUser) {
+        this.currentUser = _currentUser;
+    }
+
+    User getCurrentUser() {
+        return this.currentUser;
+    }
+
+    void update() {
+        this.setState(this.state);
+    }
+
+    void update(String _prompt) {
+        System.out.println(_prompt);
+        this.setState(this.state);
     }
 
     void setState(CLIState _state) {
@@ -48,12 +69,16 @@ class CLI {
         this.state.register();
     }
 
-    void rightCredentials() {
-        this.state.rightCredentials();
+    void succeed() {
+        this.state.succeed();
     }
 
-    void wrongCredentials() {
-        this.state.wrongCredentials();
+    void failed(String _cause) {
+        this.state.failed(_cause);
+    }
+
+    void failed() {
+        this.state.failed("unknown cause.");
     }
 
     void logout() {
