@@ -1,18 +1,15 @@
 package practise;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
+import java.util.Scanner;
 
-class FilePrac {
-
+public class FilePrac {
     public static void main(String[] args) {
         try {
-            File file = new File("socket_programming/storage/asif");
+            File file = new File("/home/brainiac77/github/cse322/socket_programming/practise/a");
             file.mkdir();
-        } catch (Exception e) {
-            System.out.println(e);
+        } catch (Exception exception) {
+            exception.printStackTrace();
         }
     }
-
 }

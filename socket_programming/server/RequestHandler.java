@@ -195,6 +195,74 @@ class RequestHandler implements Runnable {
         }
     }
 
+    void sendResponse(Response _response) {
+        try {
+            this.networkUtil.write(_response);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+    }
+
+    void handleUpload(Request _request) {
+        Response response;
+        Request request;
+        String fileName = _request.getParameters()[0];
+        int fileSize = Integer.parseInt(_request.getParameters()[1]);
+        if (this.server.allocateBuffer(fileSize) > 0) {
+            int chunkSize = this.server.getRandomChunkSize();
+            JSONObject body = new JSONObject();
+            body.put("chunk_size", chunkSize);
+            response = new Response(207, body);
+            this.sendResponse(response);
+            int receivedFileSize = 0;
+            ArrayList<byte[]> receivedContent = new ArrayList<byte[]>();
+            try {
+                request = (Request) this.networkUtil.read();
+                while (request.getVerb().equalsIgnoreCase("updata")) {
+                    byte[] chunk = (byte[]) request.getBody().get("chunk");
+                    receivedContent.add(chunk);
+                    receivedFileSize += chunk.length;
+                    response = new Response(207);
+                    this.sendResponse(response);
+                    request = (Request) this.networkUtil.read();
+
+                    System.out.println("receivedFileSize: " + receivedFileSize);
+
+                }
+
+                System.out.println("fileSize: " + fileSize);
+                System.out.println("receivedSize: " + receivedFileSize);
+
+                if (request.getVerb().equalsIgnoreCase("upcomp")) {
+                    if (fileSize == receivedFileSize) {
+                        byte[] fileContent = new byte[fileSize];
+                        int currentIdx = 0;
+                        for (byte[] chunk : receivedContent) {
+                            for (int i = 0; i < chunk.length; i++) {
+                                fileContent[currentIdx++] = chunk[i];
+                            }
+                        }
+                        this.server.createFile(this.currentUser, fileContent, fileName);
+                        response = new Response(208);
+                        this.sendResponse(response);
+                    } else {
+                        response = new Response(514);
+                        this.sendResponse(response);
+                    }
+                }
+
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            } finally {
+                this.server.releaseBuffer(fileSize);
+            }
+        } else {
+            response = new Response(513);
+            this.sendResponse(response);
+        }
+    }
+
     @Override
     public void run() {
         try {
@@ -229,6 +297,9 @@ class RequestHandler implements Runnable {
                         break;
                     case "cd":
                         this.handleChangeDir(request);
+                        break;
+                    case "upmeta":
+                        this.handleUpload(request);
                         break;
                     default:
                 }

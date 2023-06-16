@@ -2,8 +2,11 @@ package server;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Random;
 import java.io.IOException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -18,12 +21,20 @@ import exception.UserNotFoundException;
 import exception.UsernameUnavailableException;
 
 public class Server {
+    private int currentBufferSize;
+    private int maxBufferSize;
+    private int minChunkSize;
+    private int maxChunkSize;
     private ServerSocket serverSocket;
     private HashMap<String, User> allUsers;
     private HashMap<String, User> loggedinUsers;
 
-    Server() {
+    Server(int _maxBufferSize, int _minChunkSize, int _maxChunkSize) {
         try {
+            this.currentBufferSize = 0;
+            this.maxBufferSize = _maxBufferSize;
+            this.minChunkSize = _minChunkSize;
+            this.maxChunkSize = _maxChunkSize;
             this.serverSocket = new ServerSocket(33333);
             this.allUsers = new HashMap<String, User>();
             this.loggedinUsers = new HashMap<String, User>();
@@ -179,8 +190,54 @@ public class Server {
         return _directoryToBeDeleted.delete();
     }
 
+    void createFile(User _user, byte[] _fileContent, String _fileName) {
+        String path = this.getUserRootDir(_user) + _user.getWorkingDir();
+        if (path.charAt(path.length() - 1) != '/') {
+            path += "/";
+        }
+        path += _fileName;
+        File file = new File(path);
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        }
+        try {
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(_fileContent);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    int allocateBuffer(int _fileSize) {
+        if (this.currentBufferSize + _fileSize <= this.maxBufferSize) {
+            this.currentBufferSize += _fileSize;
+            return _fileSize;
+        }
+        return -1;
+    }
+
+    int releaseBuffer(int _fileSize) {
+        if (this.currentBufferSize >= _fileSize) {
+            this.currentBufferSize -= _fileSize;
+            return _fileSize;
+        }
+        return -1;
+    }
+
+    int getRandomChunkSize() {
+        Random random = new Random();
+        return minChunkSize + random.nextInt(maxChunkSize - minChunkSize + 1);
+    }
+
     public static void main(String args[]) {
-        Server server = new Server();
+        int maxBufferSize = 2000000000;
+        int minChunkSize = 1000000000;
+        int maxChunkSize = 2000000000;
+        Server server = new Server(maxBufferSize, minChunkSize, maxChunkSize);
         File storageFile = new File("socket_programming/storage");
         server.deleteDirectory(storageFile);
     }

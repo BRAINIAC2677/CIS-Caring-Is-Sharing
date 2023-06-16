@@ -1,5 +1,7 @@
 package client;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -186,6 +188,58 @@ class RequestSender implements Runnable {
                     default:
                 }
 
+            } else {
+                this.cli.unknownCommand();
+            }
+        } else if (parameters.length == 3) {
+            if (parameters[0].equalsIgnoreCase("up")) {
+                File file = new File(parameters[1]);
+                if (!file.exists()) {
+                    this.cli.update(parameters[1] + " file does not exist.");
+                    return;
+                }
+                String[] tempParameters = { parameters[2], Integer.toString((int) file.length()) };
+                Request request = new Request("upmeta", tempParameters);
+                Response response = this.getResponse(request);
+                if (response.getCode() == 207) {
+                    FileInputStream fis;
+                    int chunkSize = (int) response.getBody().get("chunk_size");
+                    int remainingFileSize = (int) file.length();
+
+                    try {
+                        fis = new FileInputStream(file);
+                        while (remainingFileSize > 0) {
+
+                            System.out.println("remainingFileSize: " + remainingFileSize + " chunkSize: " + chunkSize);
+
+                            byte[] chunk = new byte[Math.min(remainingFileSize, chunkSize)];
+                            fis.read(chunk);
+                            remainingFileSize -= chunk.length;
+                            JSONObject body = new JSONObject();
+                            body.put("chunk", chunk);
+                            request = (new Request("updata")).setBody(body);
+                            response = this.getResponse(request);
+                            if (response.getCode() == 207) {
+                                fis.read(chunk);
+                            } else {
+                                this.cli.update("unsuccessful upload.");
+                                return;
+                            }
+                        }
+                        request = new Request("upcomp");
+                        response = this.getResponse(request);
+                        if (response.getCode() == 208) {
+                            this.cli.update("successful upload.");
+                        } else {
+                            this.cli.update("unsuccessful upload.");
+                        }
+                        fis.close();
+                    } catch (Exception exception) {
+                        exception.printStackTrace();
+                    }
+                } else {
+                    this.cli.update(parameters[1] + " was not uploaded due to peak traffic.");
+                }
             } else {
                 this.cli.unknownCommand();
             }
