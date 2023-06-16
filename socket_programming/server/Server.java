@@ -158,9 +158,11 @@ public class Server {
         _user.setWorkingDir(changedDir);
     }
 
-    ArrayList<String> ls(User _user, String _dirName) throws DirectoryDoesNotExistException, NotADirectoryException {
+    HashMap<String, Boolean> ls(User _user, String _dirName)
+            throws DirectoryDoesNotExistException, NotADirectoryException {
         String path = this.getUserRootDir(_user) + _user.getWorkingDir();
-        if (_dirName != ".") {
+        System.out.println("_dirName: " + _dirName);
+        if (!_dirName.equals(".")) {
             if (path.charAt(path.length() - 1) != '/') {
                 path += "/";
             }
@@ -173,11 +175,22 @@ public class Server {
         if (!dir.isDirectory()) {
             throw new NotADirectoryException(_dirName);
         }
-        ArrayList<String> fileNames = new ArrayList<String>();
+        HashMap<String, Boolean> files = new HashMap<String, Boolean>();
+        System.out.println("path: " + path);
         for (String fileName : dir.list()) {
-            fileNames.add(fileName);
+            String currentPath = path;
+            if (currentPath.charAt(currentPath.length() - 1) != '/') {
+                currentPath += "/";
+            }
+            currentPath += fileName;
+            System.out.println(currentPath);
+            if ((new File(currentPath)).isDirectory()) {
+                files.put(fileName, true);
+            } else {
+                files.put(fileName, _user.checkFileVisibility(currentPath));
+            }
         }
-        return fileNames;
+        return files;
     }
 
     public boolean deleteDirectory(File _directoryToBeDeleted) {
@@ -190,7 +203,7 @@ public class Server {
         return _directoryToBeDeleted.delete();
     }
 
-    void createFile(User _user, byte[] _fileContent, String _fileName) {
+    String createFile(User _user, byte[] _fileContent, String _fileName) {
         String path = this.getUserRootDir(_user) + _user.getWorkingDir();
         if (path.charAt(path.length() - 1) != '/') {
             path += "/";
@@ -204,12 +217,15 @@ public class Server {
                 exception.printStackTrace();
             }
         }
+        FileOutputStream fos;
         try {
-            FileOutputStream fos = new FileOutputStream(file);
+            fos = new FileOutputStream(file);
             fos.write(_fileContent);
+            fos.close();
         } catch (Exception exception) {
             exception.printStackTrace();
         }
+        return path;
     }
 
     int allocateBuffer(int _fileSize) {

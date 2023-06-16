@@ -3,6 +3,7 @@ package client;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 import org.json.simple.JSONObject;
@@ -10,6 +11,9 @@ import org.json.simple.JSONObject;
 import util.*;
 
 class RequestSender implements Runnable {
+    public static final String RED_ANSI = "\u001B[31m";
+    public static final String GREEN_ANSI = "\u001B[32m";
+    public static final String RESET_ANSI = "\u001B[0m";
     private NetworkUtil networkUtil;
     private CLI cli;
     private Thread thread;
@@ -173,9 +177,14 @@ class RequestSender implements Runnable {
                 Response response = this.getResponse(request);
                 switch (response.getCode()) {
                     case 206:
-                        ArrayList<String> fileNames = (ArrayList<String>) response.getBody().get("file_list");
-                        for (String fileName : fileNames) {
-                            System.out.println("- " + fileName);
+                        HashMap<String, Boolean> files = (HashMap<String, Boolean>) response.getBody().get("file_list");
+                        for (String fileName : files.keySet()) {
+                            if (files.get(fileName)) {
+                                System.out.println(GREEN_ANSI + "- " + fileName + RESET_ANSI);
+                            } else {
+
+                                System.out.println(RED_ANSI + "- " + fileName + RESET_ANSI);
+                            }
                         }
                         this.cli.update();
                         break;
@@ -191,14 +200,18 @@ class RequestSender implements Runnable {
             } else {
                 this.cli.unknownCommand();
             }
-        } else if (parameters.length == 3) {
+        } else if (parameters.length == 4) {
             if (parameters[0].equalsIgnoreCase("up")) {
                 File file = new File(parameters[1]);
                 if (!file.exists()) {
                     this.cli.update(parameters[1] + " file does not exist.");
                     return;
                 }
-                String[] tempParameters = { parameters[2], Integer.toString((int) file.length()) };
+                if (!(parameters[3].equalsIgnoreCase("public") || parameters[3].equalsIgnoreCase("private"))) {
+                    this.cli.unknownCommand();
+                    return;
+                }
+                String[] tempParameters = { parameters[2], Integer.toString((int) file.length()), parameters[3] };
                 Request request = new Request("upmeta", tempParameters);
                 Response response = this.getResponse(request);
                 if (response.getCode() == 207) {

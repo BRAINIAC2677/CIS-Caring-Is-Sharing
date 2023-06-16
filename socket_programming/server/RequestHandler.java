@@ -177,10 +177,10 @@ class RequestHandler implements Runnable {
         Response response;
         try {
             String dirName = _request.getParameters()[0];
-            ArrayList<String> fileNames = this.server.ls(currentUser, dirName);
+            HashMap<String, Boolean> files = this.server.ls(currentUser, dirName);
             JSONObject body = new JSONObject();
             body.put("user", this.currentUser);
-            body.put("file_list", fileNames);
+            body.put("file_list", files);
             response = new Response(206, body);
         } catch (DirectoryDoesNotExistException exception) {
             response = new Response(511);
@@ -209,6 +209,7 @@ class RequestHandler implements Runnable {
         Request request;
         String fileName = _request.getParameters()[0];
         int fileSize = Integer.parseInt(_request.getParameters()[1]);
+        Boolean visibility = (_request.getParameters()[2].equalsIgnoreCase("public") ? true : false);
         if (this.server.allocateBuffer(fileSize) > 0) {
             int chunkSize = this.server.getRandomChunkSize();
             JSONObject body = new JSONObject();
@@ -243,7 +244,8 @@ class RequestHandler implements Runnable {
                                 fileContent[currentIdx++] = chunk[i];
                             }
                         }
-                        this.server.createFile(this.currentUser, fileContent, fileName);
+                        String filepath = this.server.createFile(this.currentUser, fileContent, fileName);
+                        this.currentUser.addFileVisibility(filepath, visibility);
                         response = new Response(208);
                         this.sendResponse(response);
                     } else {

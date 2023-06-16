@@ -1,5 +1,6 @@
 package util;
 
+import java.util.HashMap;
 import java.io.Serializable;
 
 public class User implements Serializable {
@@ -7,12 +8,33 @@ public class User implements Serializable {
     private String username;
     private String password;
     private String workingDir;
+    private HashMap<String, Boolean> fileVisibility;
 
     public User(String _username, String _password) {
         this.username = _username;
         this.password = _password;
+        this.fileVisibility = new HashMap<String, Boolean>();
         this.loginStatus = false;
         this.workingDir = "/";
+    }
+
+    public User addFileVisibility(String _filepath, Boolean _visibility) {
+        this.fileVisibility.put(_filepath, _visibility);
+        return this;
+    }
+
+    public User removeFileVisibility(String _filepath) {
+        if (this.fileVisibility.containsKey(_filepath)) {
+            this.fileVisibility.remove(_filepath);
+        }
+        return this;
+    }
+
+    public Boolean checkFileVisibility(String _filepath) {
+        if (this.fileVisibility.containsKey(_filepath)) {
+            return this.fileVisibility.get(_filepath);
+        }
+        return false;
     }
 
     public User setLoginStatus(boolean _loginStatus) {
