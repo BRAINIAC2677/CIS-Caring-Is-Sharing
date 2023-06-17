@@ -26,8 +26,7 @@ public class Server {
     private int minChunkSize;
     private int maxChunkSize;
     private ServerSocket serverSocket;
-    private HashMap<String, User> allUsers;
-    private HashMap<String, User> loggedinUsers;
+    private UserBase user_base;
 
     Server(int _maxBufferSize, int _minChunkSize, int _maxChunkSize) {
         try {
@@ -36,8 +35,7 @@ public class Server {
             this.minChunkSize = _minChunkSize;
             this.maxChunkSize = _maxChunkSize;
             this.serverSocket = new ServerSocket(33333);
-            this.allUsers = new HashMap<String, User>();
-            this.loggedinUsers = new HashMap<String, User>();
+            this.user_base = new UserBase();
 
             while (true) {
                 Socket clientSocket = this.serverSocket.accept();
@@ -53,49 +51,12 @@ public class Server {
         new RequestHandler(this, networkUtil);
     }
 
-    HashMap<String, User> getAllUsers() {
-        return this.allUsers;
-    }
-
-    HashMap<String, User> getLoggedinUsers() {
-        return this.loggedinUsers;
+    public UserBase get_user_base() {
+        return this.user_base;
     }
 
     String getUserRootDir(User _user) {
         return "socket_programming/storage/" + _user.getUsername();
-    }
-
-    User registerNewUser(String _username, String _password) throws UsernameUnavailableException {
-        if (this.allUsers.containsKey(_username)) {
-            throw new UsernameUnavailableException(_username);
-        }
-        User newUser = new User(_username, _password);
-        File newDir = new File(this.getUserRootDir(newUser));
-        newDir.mkdir();
-        this.allUsers.put(_username, newUser);
-        this.loggedinUsers.put(_username, newUser);
-        return newUser;
-    }
-
-    User loginUser(String _username, String _password)
-            throws UserNotFoundException, UserAlreadyLoggedinException, IncorrectPasswordException {
-        if (!this.allUsers.containsKey(_username)) {
-            throw new UserNotFoundException(_username);
-        } else if (this.loggedinUsers.containsKey(_username)) {
-            throw new UserAlreadyLoggedinException(_username);
-        } else if (!this.allUsers.get(_username).getPassword().equals(_password)) {
-            throw new IncorrectPasswordException(_username);
-        } else {
-            User user = this.allUsers.get(_username);
-            this.loggedinUsers.put(user.getUsername(), user);
-            return user;
-        }
-    }
-
-    void logoutUser(String _username) {
-        if (this.loggedinUsers.containsKey(_username)) {
-            this.loggedinUsers.remove(_username);
-        }
     }
 
     void mkdir(User _user, String _dirName) throws DirectoryExistsException {

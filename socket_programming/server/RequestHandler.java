@@ -32,7 +32,10 @@ class RequestHandler implements Runnable {
         try {
             String username = _request.getParameters()[0];
             String password = _request.getParameters()[1];
-            User user = this.server.registerNewUser(username, password);
+
+            // User user = this.server.registerNewUser(username, password);
+            User user = this.server.get_user_base().register_user(username, password);
+
             this.currentUser = user;
             JSONObject body = new JSONObject();
             body.put("user", user);
@@ -56,17 +59,22 @@ class RequestHandler implements Runnable {
             // what if parameters number is not 2
             String username = _request.getParameters()[0];
             String password = _request.getParameters()[1];
-            User user = this.server.loginUser(username, password);
+
+            // User user = this.server.loginUser(username, password);
+            User user = this.server.get_user_base().login_user(username, password);
+
             this.currentUser = user;
             JSONObject body = new JSONObject();
             body.put("user", user);
             response = new Response(201, body);
-        } catch (UserNotFoundException exception) {
-            response = new Response(502);
-        } catch (UserAlreadyLoggedinException exception) {
-            response = new Response(503);
-        } catch (IncorrectPasswordException exception) {
-            response = new Response(504);
+        } catch (Exception exception) {
+            if (exception instanceof UserNotFoundException) {
+                response = new Response(502);
+            } else if (exception instanceof UserAlreadyLoggedinException) {
+                response = new Response(503);
+            } else {
+                response = new Response(504);
+            }
         }
 
         try {
@@ -80,9 +88,17 @@ class RequestHandler implements Runnable {
     void handleLogout(Request _request) {
         Response response = new Response(505);
         if (this.currentUser != null) {
-            this.server.logoutUser(this.currentUser.getUsername());
-            this.currentUser = null;
-            response = new Response(202);
+            try {
+
+                // this.server.logoutUser(this.currentUser.getUsername());
+                this.server.get_user_base().logout_user(this.currentUser.getUsername());
+
+                this.currentUser = null;
+                response = new Response(202);
+
+            } catch (Exception exception) {
+
+            }
         }
 
         try {
@@ -95,14 +111,11 @@ class RequestHandler implements Runnable {
 
     void handleListUsers(Request _request) {
         HashMap<String, User> users;
-        if (_request.getVerb().equalsIgnoreCase("lsau")) {
-            users = this.server.getAllUsers();
-        } else {
-            users = this.server.getLoggedinUsers();
-        }
         ArrayList<String> usernames = new ArrayList<String>();
-        for (String username : users.keySet()) {
-            usernames.add(username);
+        if (_request.getVerb().equalsIgnoreCase("lsau")) {
+            usernames = this.server.get_user_base().get_all_usernames();
+        } else {
+            usernames = this.server.get_user_base().get_loggedin_usernames();
         }
         JSONObject body = new JSONObject();
         body.put("user", this.currentUser);
@@ -313,7 +326,7 @@ class RequestHandler implements Runnable {
             try {
                 this.networkUtil.closeConnection();
                 if (this.currentUser != null) {
-                    this.server.logoutUser(this.currentUser.getUsername());
+                    this.server.get_user_base().logout_user(this.currentUser.getUsername());
                     this.currentUser = null;
                 }
             } catch (Exception exception) {
