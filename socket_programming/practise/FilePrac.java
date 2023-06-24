@@ -1,13 +1,16 @@
 package practise;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.Scanner;
 
 public class FilePrac {
     public static void main(String[] args) {
         try {
-            File file = new File("/home/brainiac77/github/cse322/socket_programming/practise/a");
-            file.mkdir();
+            Path path = Paths.get("socket_programming/storage/a.publ/docs");
+            System.out.println(path.subpath(2, path.getNameCount()).toString());
         } catch (Exception exception) {
             exception.printStackTrace();
         }

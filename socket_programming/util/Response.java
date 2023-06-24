@@ -9,6 +9,7 @@ public class Response implements Serializable {
 
     public Response(int _code) {
         this.code = _code;
+        this.body = new JSONObject();
     }
 
     public Response(int _code, JSONObject _body) {
@@ -32,6 +33,16 @@ public class Response implements Serializable {
 
     public JSONObject getBody() {
         return this.body;
+    }
+
+    public Response add_user(User _user) {
+        this.body.put("user", _user);
+        return this;
+    }
+
+    public Response add_obj(String _key, Object _obj) {
+        this.body.put(_key, _obj);
+        return this;
     }
 
 }
