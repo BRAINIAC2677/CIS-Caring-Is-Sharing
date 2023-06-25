@@ -17,10 +17,10 @@ class RegistrationCommand implements Command {
         try {
             User user = Server.get_instance().get_user_base().register_user(username, password);
             this.request_handler.current_user = user;
-            response = (new Response(200)).add_user(user);
+            response = (new Response(ResponseCode.SUCCESSFUL_REGISTRATION)).add_user(user);
         } catch (Exception exception) {
             exception.printStackTrace();
-            response = new Response(501);
+            response = new Response(ResponseCode.FAILED_REGISTRATION);
         }
         return response;
     }

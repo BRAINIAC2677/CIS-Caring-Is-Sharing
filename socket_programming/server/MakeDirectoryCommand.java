@@ -15,12 +15,12 @@ class MakeDirectoryCommand implements Command {
         Response response;
         String directory_name = _request.getParameters()[0];
         try {
-            Server.get_instance().user_base.get_remote_cli(this.request_handler.current_user.getUsername())
+            Server.get_instance().get_user_base().get_remote_cli(this.request_handler.current_user.getUsername())
                     .mkdir(directory_name);
-            response = new Response(203);
+            response = new Response(ResponseCode.SUCCESSFUL_MKDIR);
         } catch (DirectoryExistsException exception) {
             exception.printStackTrace();
-            response = new Response(506);
+            response = new Response(ResponseCode.DIRECTORY_ALREADY_EXISTS);
         }
         return response;
     }

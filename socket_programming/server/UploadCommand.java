@@ -3,10 +3,11 @@ package server;
 import java.util.ArrayList;
 
 import util.*;
-import exception.*;
 
 class UploadCommand implements Command {
     private RequestHandler request_handler;
+    private Request request;
+    private Response response;
 
     public UploadCommand(RequestHandler _request_handler) {
         this.request_handler = _request_handler;
@@ -14,59 +15,71 @@ class UploadCommand implements Command {
 
     @Override
     public Response execute(Request _request) {
-        Response response;
-        Request request;
-        String fileName = _request.getParameters()[0];
-        int fileSize = Integer.parseInt(_request.getParameters()[1]);
+        String filename = _request.getParameters()[0];
+        int filesize = Integer.parseInt(_request.getParameters()[1]);
         Boolean visibility = (_request.getParameters()[2].equalsIgnoreCase("public") ? true : false);
-        if (Server.get_instance().allocateBuffer(fileSize) > 0) {
-            int chunkSize = Server.get_instance().getRandomChunkSize();
-            response = (new Response(207)).add_obj("chunk_size", chunkSize);
-            this.request_handler.send_response(response);
-            int receivedFileSize = 0;
-            ArrayList<byte[]> receivedContent = new ArrayList<byte[]>();
+
+        if (Server.get_instance().allocate_buffer(filesize) > 0) {
             try {
-                request = this.request_handler.get_request();
-                while (request.getVerb().equalsIgnoreCase("updata")) {
-                    byte[] chunk = (byte[]) request.getBody().get("chunk");
-                    receivedContent.add(chunk);
-                    receivedFileSize += chunk.length;
-                    response = new Response(207);
-                    this.request_handler.send_response(response);
-                    request = this.request_handler.get_request();
+                int chunksize = Server.get_instance().get_random_chunksize();
+                this.response = (new Response(ResponseCode.SUCCESSFUL_BUFFER_ALLOCATION)).add_obj("chunk_size",
+                        chunksize);
+                this.request_handler.send_response(response);
+                ArrayList<byte[]> chunks = this.receive_chunks();
+                int total_chunksize = this.get_total_chunksize(chunks);
+                if (filesize == total_chunksize) {
+                    byte[] file_content = this.merge_chunks(chunks);
+                    Server.get_instance().get_user_base()
+                            .get_remote_cli(this.request_handler.current_user.getUsername())
+                            .touch(filename,
+                                    file_content, visibility);
+                    this.response = new Response(ResponseCode.SUCCESSFUL_UPLOAD);
+                } else {
+                    this.response = new Response(ResponseCode.FAILED_UPLOAD);
                 }
-
-                if (request.getVerb().equalsIgnoreCase("upcomp")) {
-                    if (fileSize == receivedFileSize) {
-                        byte[] fileContent = new byte[fileSize];
-                        int currentIdx = 0;
-                        for (byte[] chunk : receivedContent) {
-                            for (int i = 0; i < chunk.length; i++) {
-                                fileContent[currentIdx++] = chunk[i];
-                            }
-                        }
-
-                        Server.get_instance().user_base.get_remote_cli(this.request_handler.current_user.getUsername())
-                                .touch(fileName,
-                                        fileContent, visibility);
-                        response = new Response(208);
-                        this.request_handler.send_response(response);
-                    } else {
-                        response = new Response(514);
-                        this.request_handler.send_response(response);
-                    }
-                }
-
             } catch (Exception exception) {
                 exception.printStackTrace();
+                this.response = new Response(ResponseCode.FAILED_UPLOAD);
             } finally {
-                Server.get_instance().releaseBuffer(fileSize);
+                Server.get_instance().release_buffer(filesize);
             }
         } else {
-            response = new Response(513);
-            this.request_handler.send_response(response);
+            this.response = new Response(ResponseCode.FAILED_BUFFER_ALLOCATION);
         }
-        return response;
+        return this.response;
+    }
+
+    ArrayList<byte[]> receive_chunks() throws Exception {
+        ArrayList<byte[]> chunks = new ArrayList<byte[]>();
+        this.request = this.request_handler.get_request();
+        while (this.request.getVerb().equalsIgnoreCase("updata")) {
+            byte[] chunk = (byte[]) this.request.getBody().get("chunk");
+            chunks.add(chunk);
+            this.response = new Response(ResponseCode.SUCCESSFUL_BUFFER_ALLOCATION);
+            this.request_handler.send_response(this.response);
+            this.request = this.request_handler.get_request();
+        }
+        return chunks;
+    }
+
+    byte[] merge_chunks(ArrayList<byte[]> _chunks) {
+        int total_chunksize = this.get_total_chunksize(_chunks);
+        byte[] merged_chunk = new byte[total_chunksize];
+        int current_idx = 0;
+        for (byte[] chunk : _chunks) {
+            for (int i = 0; i < chunk.length; i++) {
+                merged_chunk[current_idx++] = chunk[i];
+            }
+        }
+        return merged_chunk;
+    }
+
+    int get_total_chunksize(ArrayList<byte[]> _chunks) {
+        int total_chunksize = 0;
+        for (byte[] chunk : _chunks) {
+            total_chunksize += chunk.length;
+        }
+        return total_chunksize;
     }
 
 }

@@ -14,7 +14,7 @@ class ListUserCommand implements Command {
         } else {
             usernames = Server.get_instance().get_user_base().get_loggedin_usernames();
         }
-        Response response = (new Response(202)).add_obj("user_list", usernames);
+        Response response = (new Response(ResponseCode.SUCCESSFUL_LIST_USER)).add_obj("user_list", usernames);
         return response;
     }
 

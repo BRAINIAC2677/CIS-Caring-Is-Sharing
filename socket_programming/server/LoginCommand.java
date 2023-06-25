@@ -18,15 +18,15 @@ class LoginCommand implements Command {
         try {
             User user = Server.get_instance().get_user_base().login_user(username, password);
             this.request_handler.current_user = user;
-            response = (new Response(201)).add_user(user);
+            response = (new Response(ResponseCode.SUCCESSFUL_LOGIN)).add_user(user);
         } catch (Exception exception) {
             exception.printStackTrace();
             if (exception instanceof UserNotFoundException) {
-                response = new Response(502);
+                response = new Response(ResponseCode.USER_NOT_FOUND);
             } else if (exception instanceof UserAlreadyLoggedinException) {
-                response = new Response(503);
+                response = new Response(ResponseCode.USER_ALREADY_LOGGED_IN);
             } else {
-                response = new Response(504);
+                response = new Response(ResponseCode.INCORRECT_PASSWORD);
             }
         }
         return response;

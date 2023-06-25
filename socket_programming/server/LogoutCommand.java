@@ -11,13 +11,13 @@ public class LogoutCommand implements Command {
 
     @Override
     public Response execute(Request _request) {
-        Response response = new Response(505);
+        Response response = new Response(ResponseCode.FAILED_LOGOUT);
         User current_user = this.request_handler.current_user;
         if (current_user != null) {
             try {
                 Server.get_instance().get_user_base().logout_user(current_user.getUsername());
                 this.request_handler.current_user = null;
-                response = new Response(202);
+                response = new Response(ResponseCode.SUCCESSFUL_LOGOUT);
 
             } catch (Exception exception) {
                 exception.printStackTrace();

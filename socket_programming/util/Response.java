@@ -4,20 +4,20 @@ import java.io.Serializable;
 import org.json.simple.JSONObject;
 
 public class Response implements Serializable {
-    private int code;
+    private ResponseCode code;
     private JSONObject body;
 
-    public Response(int _code) {
+    public Response(ResponseCode _code) {
         this.code = _code;
         this.body = new JSONObject();
     }
 
-    public Response(int _code, JSONObject _body) {
+    public Response(ResponseCode _code, JSONObject _body) {
         this.code = _code;
         this.body = _body;
     }
 
-    public Response setCode(int _code) {
+    public Response setCode(ResponseCode _code) {
         this.code = _code;
         return this;
     }
@@ -27,7 +27,7 @@ public class Response implements Serializable {
         return this;
     }
 
-    public int getCode() {
+    public ResponseCode getCode() {
         return this.code;
     }
 

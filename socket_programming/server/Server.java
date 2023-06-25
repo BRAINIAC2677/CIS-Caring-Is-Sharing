@@ -8,79 +8,72 @@ import java.net.Socket;
 import util.*;
 
 class Server {
-    private int currentBufferSize;
-    private int maxBufferSize;
-    private int minChunkSize;
-    private int maxChunkSize;
-    private ServerSocket serverSocket;
-    public UserBase user_base;
-
+    private int current_buffersize;
+    private int max_buffersize;
+    private int min_chunksize;
+    private int max_chunksize;
+    private ServerSocket server_socket;
+    private UserBase user_base;
     private static Server instance;
 
-    private Server(int _maxBufferSize, int _minChunkSize, int _maxChunkSize) {
+    private Server(int _max_buffersize, int _min_chunksize, int _max_chunksize) {
         try {
-            this.currentBufferSize = 0;
-            this.maxBufferSize = _maxBufferSize;
-            this.minChunkSize = _minChunkSize;
-            this.maxChunkSize = _maxChunkSize;
-            this.serverSocket = new ServerSocket(33333);
+            this.current_buffersize = 0;
+            this.max_buffersize = _max_buffersize;
+            this.min_chunksize = _min_chunksize;
+            this.max_chunksize = _max_chunksize;
+            this.server_socket = new ServerSocket(33333);
             this.user_base = new UserBase();
             instance = this;
-
             while (true) {
-                Socket clientSocket = this.serverSocket.accept();
-                this.serve(clientSocket);
+                Socket client_socket = this.server_socket.accept();
+                this.serve(client_socket);
             }
         } catch (Exception exception) {
             exception.printStackTrace();
         }
     }
 
-    public static Server get_instance() {
+    static Server get_instance() {
         return instance;
     }
 
-    public void serve(Socket _clientSocket) throws IOException {
-        NetworkUtil networkUtil = new NetworkUtil(_clientSocket);
-        new RequestHandler(networkUtil);
+    void serve(Socket _client_socket) throws IOException {
+        NetworkUtil network_util = new NetworkUtil(_client_socket);
+        new RequestHandler(network_util);
     }
 
-    public UserBase get_user_base() {
+    UserBase get_user_base() {
         return this.user_base;
     }
 
-    String getUserRootDir(User _user) {
-        return "socket_programming/storage/" + _user.getUsername();
-    }
-
-    int allocateBuffer(int _fileSize) {
-        if (this.currentBufferSize + _fileSize <= this.maxBufferSize) {
-            this.currentBufferSize += _fileSize;
+    int allocate_buffer(int _fileSize) {
+        if (this.current_buffersize + _fileSize <= this.max_buffersize) {
+            this.current_buffersize += _fileSize;
             return _fileSize;
         }
         return -1;
     }
 
-    int releaseBuffer(int _fileSize) {
-        if (this.currentBufferSize >= _fileSize) {
-            this.currentBufferSize -= _fileSize;
+    int release_buffer(int _fileSize) {
+        if (this.current_buffersize >= _fileSize) {
+            this.current_buffersize -= _fileSize;
             return _fileSize;
         }
         return -1;
     }
 
-    int getRandomChunkSize() {
+    int get_random_chunksize() {
         Random random = new Random();
-        return minChunkSize + random.nextInt(maxChunkSize - minChunkSize + 1);
+        return min_chunksize + random.nextInt(max_chunksize - min_chunksize + 1);
     }
 
     public static void main(String args[]) {
-        int maxBufferSize = 2000000000;
-        int minChunkSize = 1000000000;
-        int maxChunkSize = 2000000000;
+        int max_buffersize = 2000000000;
+        int min_chunksize = 1000000000;
+        int max_chunksize = 2000000000;
         if (instance == null) {
-            System.out.println("hello");
-            new Server(maxBufferSize, minChunkSize, maxChunkSize);
+            new Server(max_buffersize, min_chunksize, max_chunksize);
         }
     }
 }

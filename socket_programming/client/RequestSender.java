@@ -14,12 +14,12 @@ class RequestSender implements Runnable {
     public static final String RED_ANSI = "\u001B[31m";
     public static final String GREEN_ANSI = "\u001B[32m";
     public static final String RESET_ANSI = "\u001B[0m";
-    private NetworkUtil networkUtil;
+    private NetworkUtil network_util;
     private CLI cli;
     private Thread thread;
 
-    RequestSender(NetworkUtil _networkUtil) {
-        this.networkUtil = _networkUtil;
+    RequestSender(NetworkUtil _network_util) {
+        this.network_util = _network_util;
         this.cli = new CLI();
         this.thread = new Thread(this);
         this.thread.start();
@@ -29,8 +29,8 @@ class RequestSender implements Runnable {
         Response response;
         while (true) {
             try {
-                this.networkUtil.write(_request);
-                response = (Response) this.networkUtil.read();
+                this.network_util.write(_request);
+                response = (Response) this.network_util.read();
                 break;
             } catch (Exception exception) {
                 exception.printStackTrace();
@@ -46,7 +46,7 @@ class RequestSender implements Runnable {
             this.cli.register();
         } else if (_input.equalsIgnoreCase("q")) {
             try {
-                this.networkUtil.closeConnection();
+                this.network_util.closeConnection();
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
@@ -61,16 +61,16 @@ class RequestSender implements Runnable {
         if (parameters.length == 2) {
             Request request = new Request("logi", parameters);
             Response response = this.getResponse(request);
-            if (response.getCode() == 201) {
+            if (response.getCode() == ResponseCode.SUCCESSFUL_LOGIN) {
                 JSONObject body = (JSONObject) response.getBody();
                 User user = (User) body.get("user");
                 this.cli.setCurrentUser(user);
                 this.cli.succeed();
-            } else if (response.getCode() == 502) {
+            } else if (response.getCode() == ResponseCode.USER_NOT_FOUND) {
                 this.cli.failed("user not found.register first.");
-            } else if (response.getCode() == 503) {
+            } else if (response.getCode() == ResponseCode.USER_ALREADY_LOGGED_IN) {
                 this.cli.failed("user already logged in.");
-            } else if (response.getCode() == 504) {
+            } else if (response.getCode() == ResponseCode.INCORRECT_PASSWORD) {
                 this.cli.failed("incorrect password.");
             }
         } else {
@@ -83,7 +83,7 @@ class RequestSender implements Runnable {
         if (parameters.length == 2) {
             Request request = new Request("regi", parameters);
             Response response = this.getResponse(request);
-            if (response.getCode() == 200) {
+            if (response.getCode() == ResponseCode.SUCCESSFUL_REGISTRATION) {
                 JSONObject body = (JSONObject) response.getBody();
                 User user = (User) body.get("user");
                 this.cli.setCurrentUser(user);
@@ -130,7 +130,7 @@ class RequestSender implements Runnable {
                 String[] tempParameters = { parameters[1] };
                 Request request = new Request("mkdir", tempParameters);
                 Response response = this.getResponse(request);
-                if (response.getCode() == 203) {
+                if (response.getCode() == ResponseCode.SUCCESSFUL_MKDIR) {
                     this.cli.update();
                 } else {
                     this.cli.update(parameters[1] + " directory already exists.");
@@ -140,13 +140,13 @@ class RequestSender implements Runnable {
                 Request request = new Request("rmdir", tempParameters);
                 Response response = this.getResponse(request);
                 switch (response.getCode()) {
-                    case 204:
+                    case SUCCESSFUL_RMDIR:
                         this.cli.update();
                         break;
-                    case 507:
+                    case DIRECTORY_DOES_NOT_EXIST:
                         this.cli.update(parameters[1] + " does not exist.");
                         break;
-                    case 508:
+                    case DIRECTORY_NOT_EMPTY:
                         this.cli.update(parameters[1] + " is not empty.");
                         break;
                     default:
@@ -157,15 +157,15 @@ class RequestSender implements Runnable {
                 Request request = new Request("cd", tempParameters);
                 Response response = this.getResponse(request);
                 switch (response.getCode()) {
-                    case 205:
+                    case SUCCESSFUL_CD:
                         User currentUser = (User) response.getBody().get("user");
                         this.cli.setCurrentUser(currentUser);
                         this.cli.update();
                         break;
-                    case 509:
+                    case DIRECTORY_DOES_NOT_EXIST:
                         this.cli.update(parameters[1] + " does not exist.");
                         break;
-                    case 510:
+                    case NOT_A_DIRECTORY:
                         this.cli.update(parameters[1] + " is not a directory.");
                         break;
                     default:
@@ -176,7 +176,7 @@ class RequestSender implements Runnable {
                 Request request = new Request("ls", tempParameters);
                 Response response = this.getResponse(request);
                 switch (response.getCode()) {
-                    case 206:
+                    case SUCCESSFUL_LS:
                         HashMap<String, Boolean> files = (HashMap<String, Boolean>) response.getBody().get("file_list");
                         for (String fileName : files.keySet()) {
                             if (files.get(fileName)) {
@@ -188,10 +188,10 @@ class RequestSender implements Runnable {
                         }
                         this.cli.update();
                         break;
-                    case 511:
+                    case DIRECTORY_DOES_NOT_EXIST:
                         this.cli.update(parameters[1] + " does not exist.");
                         break;
-                    case 512:
+                    case NOT_A_DIRECTORY:
                         this.cli.update(parameters[1] + " is not a directory.");
                         break;
                     default:
@@ -214,7 +214,7 @@ class RequestSender implements Runnable {
                 String[] tempParameters = { parameters[2], Integer.toString((int) file.length()), parameters[3] };
                 Request request = new Request("upmeta", tempParameters);
                 Response response = this.getResponse(request);
-                if (response.getCode() == 207) {
+                if (response.getCode() == ResponseCode.SUCCESSFUL_BUFFER_ALLOCATION) {
                     FileInputStream fis;
                     int chunkSize = (int) response.getBody().get("chunk_size");
                     int remainingFileSize = (int) file.length();
@@ -232,7 +232,7 @@ class RequestSender implements Runnable {
                             body.put("chunk", chunk);
                             request = (new Request("updata")).setBody(body);
                             response = this.getResponse(request);
-                            if (response.getCode() == 207) {
+                            if (response.getCode() == ResponseCode.SUCCESSFUL_BUFFER_ALLOCATION) {
                                 fis.read(chunk);
                             } else {
                                 this.cli.update("unsuccessful upload.");
@@ -241,7 +241,7 @@ class RequestSender implements Runnable {
                         }
                         request = new Request("upcomp");
                         response = this.getResponse(request);
-                        if (response.getCode() == 208) {
+                        if (response.getCode() == ResponseCode.SUCCESSFUL_UPLOAD) {
                             this.cli.update("successful upload.");
                         } else {
                             this.cli.update("unsuccessful upload.");
@@ -282,7 +282,7 @@ class RequestSender implements Runnable {
             exception.printStackTrace();
         } finally {
             try {
-                this.networkUtil.closeConnection();
+                this.network_util.closeConnection();
             } catch (Exception exception) {
                 exception.printStackTrace();
             }

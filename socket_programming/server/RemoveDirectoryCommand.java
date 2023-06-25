@@ -15,15 +15,15 @@ class RemoveDirectoryCommand implements Command {
         Response response;
         String directory_name = _request.getParameters()[0];
         try {
-            Server.get_instance().user_base.get_remote_cli(this.request_handler.current_user.getUsername())
+            Server.get_instance().get_user_base().get_remote_cli(this.request_handler.current_user.getUsername())
                     .rmdir(directory_name);
-            response = new Response(204);
+            response = new Response(ResponseCode.SUCCESSFUL_RMDIR);
         } catch (Exception exception) {
             exception.printStackTrace();
             if (exception instanceof DirectoryDoesNotExistException) {
-                response = new Response(507);
+                response = new Response(ResponseCode.DIRECTORY_DOES_NOT_EXIST);
             } else {
-                response = new Response(508);
+                response = new Response(ResponseCode.DIRECTORY_NOT_EMPTY);
             }
         }
         return response;
