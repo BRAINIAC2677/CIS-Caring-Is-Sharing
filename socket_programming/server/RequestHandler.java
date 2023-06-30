@@ -17,11 +17,15 @@ class RequestHandler implements Runnable {
         this.commands.put("logo", new LogoutCommand(this));
         this.commands.put("lsau", new ListUserCommand());
         this.commands.put("lslu", new ListUserCommand());
+        this.commands.put("lspf", new ListPublicFileCommand());
         this.commands.put("ls", new ListDirectoryCommand(this));
         this.commands.put("mkdir", new MakeDirectoryCommand(this));
         this.commands.put("rmdir", new RemoveDirectoryCommand(this));
         this.commands.put("cd", new ChangeDirectoryCommand(this));
         this.commands.put("upmeta", new UploadCommand(this));
+        this.commands.put("down", new DownloadCommand(this));
+        this.commands.put("rf", new FileRequestCommand(this));
+        this.commands.put("lsum", new ListUnreadMessagesCommand(this));
         this.current_user = null;
         this.network_util = _network_util;
         this.thread = new Thread(this);
@@ -39,6 +43,10 @@ class RequestHandler implements Runnable {
     Request get_request() throws Exception {
         Request request = (Request) this.network_util.read();
         return request;
+    }
+
+    NetworkUtil get_network_util() {
+        return this.network_util;
     }
 
     @Override

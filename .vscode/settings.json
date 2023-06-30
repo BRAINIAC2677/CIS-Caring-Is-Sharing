@@ -1,0 +1,11 @@
+{
+    "java.project.sourcePaths": [
+        "socket_programming"
+    ],
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "json-simple-1.1.1.jar",
+        "socket_programming/lib/json-simple-1.1.1.jar"
+    ],
+    "editor.fontSize": 14
+}

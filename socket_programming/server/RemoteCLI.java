@@ -1,11 +1,13 @@
-package util;
+package server;
 
 import java.util.HashMap;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import util.*;
 import exception.*;
 
 public class RemoteCLI {
@@ -142,20 +144,44 @@ public class RemoteCLI {
         return directory;
     }
 
-    public File touch(String _filename, byte[] _filecontent, Boolean _is_public) throws Exception {
+    public PublicFile touch(String _filename, byte[] _filecontent, Boolean _is_public) throws Exception {
         File file = get_file_from_pathstring(_filename, _is_public);
         if (file.exists()) {
             throw new DirectoryExistsException(_filename);
         }
         file.createNewFile();
         this.write_to_file(file, _filecontent);
-        return file;
+        PublicFile cis_file = new PublicFile(file.getPath().toString());
+        if (_is_public) {
+            Server.get_instance().add_public_file(cis_file);
+        }
+        return cis_file;
     }
 
     void write_to_file(File _file, byte[] _filecontent) throws Exception {
         FileOutputStream fos = new FileOutputStream(_file, false);
         fos.write(_filecontent);
         fos.close();
+    }
+
+    public byte[] get_filecontent(String _relative_pathstring) throws Exception {
+        File file = this.get_file_if_exists(_relative_pathstring);
+        byte[] filecontent = new byte[(int) file.length()];
+        FileInputStream fis = new FileInputStream(file);
+        fis.read(filecontent);
+        fis.close();
+        return filecontent;
+    }
+
+    public byte[] get_filecontent(int _fileid) throws Exception {
+        PublicFile public_file = Server.get_instance().get_public_file(_fileid);
+        String _root_relative_pathstring = public_file.get_pathstring();
+        File file = new File(_root_relative_pathstring);
+        byte[] filecontent = new byte[(int) file.length()];
+        FileInputStream fis = new FileInputStream(file);
+        fis.read(filecontent);
+        fis.close();
+        return filecontent;
     }
 
     Boolean is_public(String _relative_path) {

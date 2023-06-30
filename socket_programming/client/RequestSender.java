@@ -2,9 +2,12 @@ package client;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.json.simple.JSONObject;
 
@@ -101,6 +104,29 @@ class RequestSender implements Runnable {
         if (parameters.length == 1) {
             if (parameters[0].equalsIgnoreCase("")) {
                 this.cli.update();
+            } else if (parameters[0].equalsIgnoreCase("lsum")) {
+                Request request = new Request("lsum");
+                Response response = this.getResponse(request);
+                ArrayList<FileRequest> unread_file_requests = (ArrayList<FileRequest>) response.getBody()
+                        .get("unread_file_requests");
+                ArrayList<FileResponse> unread_file_responses = (ArrayList<FileResponse>) response.getBody()
+                        .get("unread_file_responses");
+                if (unread_file_responses.size() > 0) {
+                    System.out.println("File Responses");
+                }
+                for (FileResponse file_response : unread_file_responses) {
+                    System.out.println("- " + file_response.get_public_file().get_filename() + " having file id: "
+                            + file_response.get_public_file().get_fileid()
+                            + "have been uploaded in response to you request.");
+                }
+                if (unread_file_requests.size() > 0) {
+                    System.out.println("File Requests");
+                }
+                for (FileRequest file_request : unread_file_requests) {
+                    System.out.println("- " + file_request.get_id() + " | " + file_request.get_requestee() + " | "
+                            + file_request.get_description());
+                }
+                this.cli.update();
             } else if (parameters[0].equalsIgnoreCase("lsau")) {
                 Request request = new Request("lsau");
                 Response response = this.getResponse(request);
@@ -118,6 +144,15 @@ class RequestSender implements Runnable {
                 }
                 this.cli.update();
 
+            } else if (parameters[0].equalsIgnoreCase("lspf")) {
+                Request request = new Request("lspf");
+                Response response = this.getResponse(request);
+                ArrayList<PublicFile> public_files = (ArrayList<PublicFile>) response.getBody().get("public_file_list");
+                for (PublicFile public_file : public_files) {
+                    System.out.println(public_file.get_fileid() + "----" + public_file.get_filename() + "----"
+                            + public_file.get_owner_name());
+                }
+                this.cli.update();
             } else if (parameters[0].equalsIgnoreCase("logout")) {
                 Request request = new Request("logo");
                 Response response = this.getResponse(request);
@@ -197,6 +232,15 @@ class RequestSender implements Runnable {
                     default:
                 }
 
+            } else if (parameters[0].equalsIgnoreCase("rf")) {
+                String[] temp_parameters = { parameters[1] };
+                Request request = new Request("rf", temp_parameters);
+                Response response = this.getResponse(request);
+                if (response.getCode() == ResponseCode.SUCCESSFUL_OPERATION) {
+                    this.cli.update("successful file request.");
+                } else {
+                    this.cli.update("file request failed.");
+                }
             } else {
                 this.cli.unknownCommand();
             }
@@ -207,12 +251,26 @@ class RequestSender implements Runnable {
                     this.cli.update(parameters[1] + " file does not exist.");
                     return;
                 }
-                if (!(parameters[3].equalsIgnoreCase("public") || parameters[3].equalsIgnoreCase("private"))) {
+                Integer file_request_id = null;
+                try {
+                    file_request_id = Integer.parseInt(parameters[3]);
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
+                if (!(parameters[3].equalsIgnoreCase("public") || parameters[3].equalsIgnoreCase("private"))
+                        && file_request_id == null) {
                     this.cli.unknownCommand();
                     return;
                 }
-                String[] tempParameters = { parameters[2], Integer.toString((int) file.length()), parameters[3] };
-                Request request = new Request("upmeta", tempParameters);
+                Request request;
+                if (file_request_id == null) {
+                    String[] tempParameters = { parameters[2], Integer.toString((int) file.length()), parameters[3] };
+                    request = new Request("upmeta", tempParameters);
+                } else {
+                    String[] tempParameters = { parameters[2], Integer.toString((int) file.length()), parameters[3],
+                            file_request_id.toString() };
+                    request = new Request("upmeta", tempParameters);
+                }
                 Response response = this.getResponse(request);
                 if (response.getCode() == ResponseCode.SUCCESSFUL_BUFFER_ALLOCATION) {
                     FileInputStream fis;
@@ -256,10 +314,54 @@ class RequestSender implements Runnable {
             } else {
                 this.cli.unknownCommand();
             }
+        } else if (parameters.length == 5) {
+            if (parameters[0].equalsIgnoreCase("down")) {
+                File file = new File(parameters[1]);
+                if (!file.exists()) {
+                    this.cli.update(parameters[1] + " file does not exist.");
+                    return;
+                }
+                if (!file.isDirectory()) {
+                    this.cli.update(parameters[1] + " is not a directory.");
+                    return;
+                }
+                if (!(parameters[4].equalsIgnoreCase("-o") || parameters[4].equalsIgnoreCase("-p"))) {
+                    this.cli.update("wrong switch.");
+                    return;
+                }
+                String[] temp_parameters = { parameters[4], parameters[3] };
+                Request request = new Request("down", temp_parameters);
+                Response response = this.getResponse(request);
+                if (response.getCode() == ResponseCode.SUCCESSFUL_DOWNLOAD) {
+                    byte[] filecontent = (byte[]) response.getBody().get("filecontent");
+                    Path filepath = Paths.get(parameters[1], parameters[2]);
+                    File download_destination_file = filepath.toFile();
+                    try {
+                        this.write_to_file(download_destination_file, filecontent);
+                    } catch (Exception exception) {
+                        exception.printStackTrace();
+                    } finally {
+                        this.cli.update("successful download.");
+                    }
+                } else if (response.getCode() == ResponseCode.DIRECTORY_DOES_NOT_EXIST) {
+
+                    this.cli.update(parameters[3] + " does not exist.");
+                } else {
+                    this.cli.update("download failed.");
+                }
+            } else {
+                this.cli.unknownCommand();
+            }
         } else {
             this.cli.unknownCommand();
         }
 
+    }
+
+    void write_to_file(File _file, byte[] _filecontent) throws Exception {
+        FileOutputStream fos = new FileOutputStream(_file, false);
+        fos.write(_filecontent);
+        fos.close();
     }
 
     @Override

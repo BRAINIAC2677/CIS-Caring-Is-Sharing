@@ -17,7 +17,17 @@ class UploadCommand implements Command {
     public Response execute(Request _request) {
         String filename = _request.getParameters()[0];
         int filesize = Integer.parseInt(_request.getParameters()[1]);
-        Boolean visibility = (_request.getParameters()[2].equalsIgnoreCase("public") ? true : false);
+        Boolean visibility = (_request.getParameters()[2].equalsIgnoreCase("private") ? false : true);
+        if (_request.getParameters().length > 3) {
+            try {
+                int file_request_id = Integer.parseInt(_request.getParameters()[3]);
+                Server.get_instance().get_file_request(file_request_id);
+            } catch (Exception exception) {
+                exception.printStackTrace();
+                this.response = new Response(ResponseCode.FAILED_UPLOAD);
+                return this.response;
+            }
+        }
 
         if (Server.get_instance().allocate_buffer(filesize) > 0) {
             try {
@@ -29,10 +39,18 @@ class UploadCommand implements Command {
                 int total_chunksize = this.get_total_chunksize(chunks);
                 if (filesize == total_chunksize) {
                     byte[] file_content = this.merge_chunks(chunks);
-                    Server.get_instance().get_user_base()
+                    PublicFile cis_file = Server.get_instance().get_user_base()
                             .get_remote_cli(this.request_handler.current_user.getUsername())
                             .touch(filename,
                                     file_content, visibility);
+                    if (_request.getParameters().length > 3) {
+                        int file_request_id = Integer.parseInt(_request.getParameters()[3]);
+                        FileRequest file_request = Server.get_instance().get_file_request(file_request_id);
+                        FileResponse file_response = (new FileResponse()).set_file_request(file_request)
+                                .set_public_file(cis_file);
+                        Server.get_instance().get_user_base().get_user(file_request.get_requestee())
+                                .add_unread_file_response(file_response);
+                    }
                     this.response = new Response(ResponseCode.SUCCESSFUL_UPLOAD);
                 } else {
                     this.response = new Response(ResponseCode.FAILED_UPLOAD);

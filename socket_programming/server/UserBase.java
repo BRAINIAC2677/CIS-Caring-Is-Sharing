@@ -65,10 +65,12 @@ class UserBase {
         }
     }
 
-    public void logout_user(String _username) throws Exception {
+    public User logout_user(String _username) throws Exception {
         this.run_logout_diagnostics(_username);
+        User user = this.loggedin_users.get(_username);
         this.loggedin_users.remove(_username);
         this.remote_clis.remove(_username);
+        return user;
     }
 
     void run_logout_diagnostics(String _username) throws UserNotLoggedinException {
@@ -91,5 +93,21 @@ class UserBase {
             loggedin_usernames.add(username);
         }
         return loggedin_usernames;
+    }
+
+    public HashMap<String, User> get_loggedin_users() {
+        return this.loggedin_users;
+    }
+
+    public ArrayList<User> get_all_users() {
+        ArrayList<User> all_user_list = new ArrayList<User>();
+        for (String username : this.all_users.keySet()) {
+            all_user_list.add(this.all_users.get(username));
+        }
+        return all_user_list;
+    }
+
+    public User get_user(String _username) {
+        return this.all_users.get(_username);
     }
 }
