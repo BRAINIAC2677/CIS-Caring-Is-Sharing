@@ -11,20 +11,13 @@ class DataConnectionListener implements Runnable {
     private static DataConnectionListener instance;
 
     private DataConnectionListener() {
+        this.thread = new Thread(this);
         try {
             this.data_socket = new ServerSocket(ServerLoader.data_port);
         } catch (Exception exception) {
             ServerLoader.debug(exception);
         }
-        this.thread = new Thread(this);
         this.thread.start();
-    }
-
-    public static DataConnectionListener get_instance() {
-        if (DataConnectionListener.instance == null) {
-            DataConnectionListener.instance = new DataConnectionListener();
-        }
-        return DataConnectionListener.instance;
     }
 
     @Override
@@ -39,4 +32,12 @@ class DataConnectionListener implements Runnable {
             }
         }
     }
+
+    public static DataConnectionListener get_instance() {
+        if (DataConnectionListener.instance == null) {
+            DataConnectionListener.instance = new DataConnectionListener();
+        }
+        return DataConnectionListener.instance;
+    }
+
 }

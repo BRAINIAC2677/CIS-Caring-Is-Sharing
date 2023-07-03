@@ -18,7 +18,7 @@ class ListDirectoryCommand implements Command {
         String directory_name = _request.get_parameters()[0];
         try {
             HashMap<String, Boolean> files = ControlConnectionListener.get_instance().get_user_base()
-                    .get_remote_cli(this.request_handler.current_user.getUsername())
+                    .get_remote_cli(this.request_handler.current_user.get_username())
                     .ls(directory_name);
             response = (new Response(ResponseCode.SUCCESSFUL_LS)).add_user(this.request_handler.current_user)
                     .add_obj("file_list", files);

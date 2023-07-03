@@ -4,17 +4,16 @@ import java.io.Serializable;
 
 public class FileRequest implements Serializable {
     private int id;
-    private int response_count = 0;
+    private int response_count;
     private String requestee;
     private String description;
 
-    public FileRequest set_id(int _id) {
-        this.id = _id;
-        return this;
+    public FileRequest() {
+        this.response_count = 0;
     }
 
-    public FileRequest inc_response_count() {
-        this.response_count++;
+    public FileRequest set_id(int _id) {
+        this.id = _id;
         return this;
     }
 
@@ -25,6 +24,11 @@ public class FileRequest implements Serializable {
 
     public FileRequest set_description(String _description) {
         this.description = _description;
+        return this;
+    }
+
+    public FileRequest inc_response_count() {
+        this.response_count++;
         return this;
     }
 

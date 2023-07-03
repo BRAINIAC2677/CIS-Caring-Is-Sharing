@@ -1,7 +1,5 @@
 package server;
 
-import java.util.ArrayList;
-
 import util.*;
 import exception.*;
 
@@ -21,13 +19,13 @@ class DownloadCommand implements Command {
             byte[] filecontent;
             if (is_owner) {
                 filecontent = ControlConnectionListener.get_instance().get_user_base()
-                        .get_remote_cli(this.request_handler.current_user.getUsername())
+                        .get_remote_cli(this.request_handler.current_user.get_username())
                         .get_filecontent(relative_pathstring);
 
             } else {
                 int fileid = Integer.parseInt(relative_pathstring);
                 filecontent = ControlConnectionListener.get_instance().get_user_base()
-                        .get_remote_cli(this.request_handler.current_user.getUsername())
+                        .get_remote_cli(this.request_handler.current_user.get_username())
                         .get_filecontent(fileid);
             }
             response = (new Response(ResponseCode.SUCCESSFUL_DOWNLOAD)).add_obj("filecontent", filecontent);

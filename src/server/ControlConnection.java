@@ -11,6 +11,9 @@ class ControlConnection implements Runnable {
     private HashMap<String, Command> commands;
 
     ControlConnection(NetworkUtil _network_util) {
+        this.current_user = null;
+        this.network_util = _network_util;
+        this.thread = new Thread(this);
         this.commands = new HashMap<String, Command>();
         this.commands.put("regi", new RegistrationCommand(this));
         this.commands.put("logi", new LoginCommand(this));
@@ -27,27 +30,7 @@ class ControlConnection implements Runnable {
         this.commands.put("down", new DownloadCommand(this));
         this.commands.put("rf", new FileRequestCommand(this));
         this.commands.put("lsum", new ListUnreadMessagesCommand(this));
-        this.current_user = null;
-        this.network_util = _network_util;
-        this.thread = new Thread(this);
         this.thread.start();
-    }
-
-    void send_response(Response _response) {
-        try {
-            this.network_util.write(_response);
-        } catch (Exception exception) {
-            ServerLoader.debug(exception);
-        }
-    }
-
-    Request get_request() throws Exception {
-        Request request = (Request) this.network_util.read();
-        return request;
-    }
-
-    NetworkUtil get_network_util() {
-        return this.network_util;
     }
 
     @Override
@@ -66,7 +49,7 @@ class ControlConnection implements Runnable {
                 this.network_util.closeConnection();
                 if (this.current_user != null) {
                     ControlConnectionListener.get_instance().get_user_base()
-                            .logout_user(this.current_user.getUsername());
+                            .logout_user(this.current_user.get_username());
                     this.current_user = null;
                 }
             } catch (Exception exception) {
@@ -74,4 +57,22 @@ class ControlConnection implements Runnable {
             }
         }
     }
+
+    NetworkUtil get_network_util() {
+        return this.network_util;
+    }
+
+    void send_response(Response _response) {
+        try {
+            this.network_util.write(_response);
+        } catch (Exception exception) {
+            ServerLoader.debug(exception);
+        }
+    }
+
+    Request get_request() throws Exception {
+        Request request = (Request) this.network_util.read();
+        return request;
+    }
+
 }

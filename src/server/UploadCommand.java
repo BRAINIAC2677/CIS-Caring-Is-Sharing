@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import util.*;
 
 class UploadCommand implements Command {
-    private ControlConnection request_handler;
     private Request request;
     private Response response;
+    private ControlConnection request_handler;
 
     public UploadCommand(ControlConnection _request_handler) {
         this.request_handler = _request_handler;
@@ -19,7 +19,7 @@ class UploadCommand implements Command {
         int filesize = Integer.parseInt(_request.get_parameters()[1]);
         Boolean is_public = (_request.get_parameters()[2].equalsIgnoreCase("private") ? false : true);
         UploadMetadata upload_metadata = (new UploadMetadata(filename)).set_filesize(filesize).set_is_public(is_public)
-                .set_owner_username(this.request_handler.current_user.getUsername());
+                .set_owner_username(this.request_handler.current_user.get_username());
         if (this.is_stoi(_request.get_parameters()[2])) {
             try {
                 int file_request_id = Integer.parseInt(_request.get_parameters()[2]);

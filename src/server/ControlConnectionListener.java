@@ -17,13 +17,12 @@ class ControlConnectionListener implements Runnable {
     private int max_buffersize;
     private int min_chunksize;
     private int max_chunksize;
+    private Thread thread;
+    private UserBase user_base;
+    private ServerSocket control_socket;
     private HashMap<Integer, PublicFile> public_files;
     private HashMap<Integer, FileRequest> file_requests;
     private HashMap<Integer, UploadMetadata> upload_metadatas;
-    private ServerSocket control_socket;
-    private UserBase user_base;
-    private Thread thread;
-
     private static ControlConnectionListener instance;
 
     private ControlConnectionListener() {
@@ -31,24 +30,17 @@ class ControlConnectionListener implements Runnable {
         this.max_buffersize = ServerLoader.max_buffersize;
         this.min_chunksize = ServerLoader.min_chunksize;
         this.max_chunksize = ServerLoader.max_chunksize;
-        this.public_files = new HashMap<Integer, PublicFile>();
-        this.file_requests = new HashMap<Integer, FileRequest>();
-        this.upload_metadatas = new HashMap<Integer, UploadMetadata>();
+        this.thread = new Thread(this);
         this.user_base = new UserBase();
         try {
             this.control_socket = new ServerSocket(ServerLoader.control_port);
         } catch (Exception exception) {
             ServerLoader.debug(exception);
         }
-        this.thread = new Thread(this);
+        this.public_files = new HashMap<Integer, PublicFile>();
+        this.file_requests = new HashMap<Integer, FileRequest>();
+        this.upload_metadatas = new HashMap<Integer, UploadMetadata>();
         this.thread.start();
-    }
-
-    static ControlConnectionListener get_instance() {
-        if (ControlConnectionListener.instance == null) {
-            ControlConnectionListener.instance = new ControlConnectionListener();
-        }
-        return instance;
     }
 
     @Override
@@ -63,15 +55,15 @@ class ControlConnectionListener implements Runnable {
         }
     }
 
-    void add_file_request(FileRequest _file_request) {
-        this.file_requests.put(_file_request.get_id(), _file_request);
+    static ControlConnectionListener get_instance() {
+        if (ControlConnectionListener.instance == null) {
+            ControlConnectionListener.instance = new ControlConnectionListener();
+        }
+        return instance;
     }
 
-    FileRequest get_file_request(int _id) throws Exception {
-        if (this.file_requests.containsKey(_id)) {
-            return this.file_requests.get(_id);
-        }
-        throw new Exception("no file request with this id.");
+    UserBase get_user_base() {
+        return this.user_base;
     }
 
     void add_public_file(PublicFile _public_file) {
@@ -92,6 +84,33 @@ class ControlConnectionListener implements Runnable {
         }
     }
 
+    ArrayList<PublicFile> get_public_files() {
+        ArrayList<PublicFile> public_files_list = new ArrayList<PublicFile>();
+        for (int fileid : this.public_files.keySet()) {
+            public_files_list.add(this.public_files.get(fileid));
+        }
+        return public_files_list;
+    }
+
+    void add_file_request(FileRequest _file_request) {
+        this.file_requests.put(_file_request.get_id(), _file_request);
+    }
+
+    FileRequest get_file_request(int _id) throws Exception {
+        if (this.file_requests.containsKey(_id)) {
+            return this.file_requests.get(_id);
+        }
+        throw new Exception("no file request with this id.");
+    }
+
+    ArrayList<FileRequest> get_file_requests() {
+        ArrayList<FileRequest> file_request_list = new ArrayList<FileRequest>();
+        for (int request_id : this.file_requests.keySet()) {
+            file_request_list.add(this.file_requests.get(request_id));
+        }
+        return file_request_list;
+    }
+
     void add_upload_metadata(UploadMetadata _upload_metadata) {
         this.upload_metadatas.put(_upload_metadata.get_upload_id(), _upload_metadata);
     }
@@ -109,33 +128,9 @@ class ControlConnectionListener implements Runnable {
         throw new Exception("upload_metadata absent");
     }
 
-    ArrayList<PublicFile> get_public_files() {
-        ArrayList<PublicFile> public_files_list = new ArrayList<PublicFile>();
-        for (int fileid : this.public_files.keySet()) {
-            public_files_list.add(this.public_files.get(fileid));
-        }
-        return public_files_list;
-    }
-
-    ArrayList<FileRequest> get_file_requests() {
-        ArrayList<FileRequest> file_request_list = new ArrayList<FileRequest>();
-        for (int request_id : this.file_requests.keySet()) {
-            file_request_list.add(this.file_requests.get(request_id));
-        }
-        return file_request_list;
-    }
-
     void serve(Socket _client_socket) throws IOException {
         NetworkUtil network_util = new NetworkUtil(_client_socket);
         new ControlConnection(network_util);
-    }
-
-    void broadcast_file_request(FileRequest _file_request) {
-
-    }
-
-    UserBase get_user_base() {
-        return this.user_base;
     }
 
     int allocate_buffer(int _fileSize) {

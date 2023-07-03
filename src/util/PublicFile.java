@@ -13,21 +13,21 @@ public class PublicFile implements Serializable {
         this.root_directory_name_count = _root_directory_name_count;
     }
 
-    public static int get_fileid(String _pathstring) {
-        return _pathstring.hashCode();
-    }
-
     public PublicFile set_pathstring(String _pathstring) {
         this.pathstring = _pathstring;
         return this;
     }
 
-    public String get_pathstring() {
-        return this.pathstring;
-    }
-
     public int get_fileid() {
         return PublicFile.get_fileid(pathstring);
+    }
+
+    public static int get_fileid(String _pathstring) {
+        return _pathstring.hashCode();
+    }
+
+    public String get_pathstring() {
+        return this.pathstring;
     }
 
     public String get_filename() {
@@ -46,5 +46,4 @@ public class PublicFile implements Serializable {
         owner_name = owner_name.substring(0, owner_name.lastIndexOf("."));
         return owner_name;
     }
-
 }

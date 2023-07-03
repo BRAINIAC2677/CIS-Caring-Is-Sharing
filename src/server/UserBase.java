@@ -2,11 +2,12 @@ package server;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.io.File;
 
 import util.*;
 import exception.*;
 
-class UserBase {
+public class UserBase {
     private HashMap<String, User> all_users;
     private HashMap<String, User> loggedin_users;
     private HashMap<String, RemoteCLI> remote_clis;
@@ -15,6 +16,38 @@ class UserBase {
         this.all_users = new HashMap<String, User>();
         this.loggedin_users = new HashMap<String, User>();
         this.remote_clis = new HashMap<String, RemoteCLI>();
+    }
+
+    public User get_user(String _username) {
+        return this.all_users.get(_username);
+    }
+
+    public ArrayList<String> get_all_usernames() {
+        ArrayList<String> all_usernames = new ArrayList<String>();
+        for (String username : this.all_users.keySet()) {
+            all_usernames.add(username);
+        }
+        return all_usernames;
+    }
+
+    public ArrayList<User> get_all_users() {
+        ArrayList<User> all_user_list = new ArrayList<User>();
+        for (String username : this.all_users.keySet()) {
+            all_user_list.add(this.all_users.get(username));
+        }
+        return all_user_list;
+    }
+
+    public ArrayList<String> get_loggedin_usernames() {
+        ArrayList<String> loggedin_usernames = new ArrayList<String>();
+        for (String username : this.loggedin_users.keySet()) {
+            loggedin_usernames.add(username);
+        }
+        return loggedin_usernames;
+    }
+
+    public HashMap<String, User> get_loggedin_users() {
+        return this.loggedin_users;
     }
 
     public RemoteCLI get_remote_cli(String _username) {
@@ -40,7 +73,8 @@ class UserBase {
     void create_user_root_directory(String _username) {
         try {
             String root_directory = ServerLoader.storage_directory + _username + ".publ";
-            FileUtil.create_directory(root_directory);
+            File file = new File(root_directory);
+            file.mkdir();
         } catch (Exception exception) {
             ServerLoader.debug(exception);
         }
@@ -49,7 +83,7 @@ class UserBase {
     public User login_user(String _username, String _password) throws Exception {
         this.run_login_diagnostics(_username, _password);
         User user = this.all_users.get(_username);
-        this.loggedin_users.put(user.getUsername(), user);
+        this.loggedin_users.put(user.get_username(), user);
         this.remote_clis.put(_username, new RemoteCLI(ServerLoader.storage_directory + _username + ".publ", user));
         return user;
     }
@@ -79,35 +113,4 @@ class UserBase {
         }
     }
 
-    public ArrayList<String> get_all_usernames() {
-        ArrayList<String> all_usernames = new ArrayList<String>();
-        for (String username : this.all_users.keySet()) {
-            all_usernames.add(username);
-        }
-        return all_usernames;
-    }
-
-    public ArrayList<String> get_loggedin_usernames() {
-        ArrayList<String> loggedin_usernames = new ArrayList<String>();
-        for (String username : this.loggedin_users.keySet()) {
-            loggedin_usernames.add(username);
-        }
-        return loggedin_usernames;
-    }
-
-    public HashMap<String, User> get_loggedin_users() {
-        return this.loggedin_users;
-    }
-
-    public ArrayList<User> get_all_users() {
-        ArrayList<User> all_user_list = new ArrayList<User>();
-        for (String username : this.all_users.keySet()) {
-            all_user_list.add(this.all_users.get(username));
-        }
-        return all_user_list;
-    }
-
-    public User get_user(String _username) {
-        return this.all_users.get(_username);
-    }
 }

@@ -15,8 +15,8 @@ public class LogoutCommand implements Command {
         User current_user = this.request_handler.current_user;
         if (current_user != null) {
             try {
-                User user = ControlConnectionListener.get_instance().get_user_base()
-                        .logout_user(current_user.getUsername());
+                ControlConnectionListener.get_instance().get_user_base()
+                        .logout_user(current_user.get_username());
                 this.request_handler.current_user = null;
                 response = new Response(ResponseCode.SUCCESSFUL_LOGOUT);
 

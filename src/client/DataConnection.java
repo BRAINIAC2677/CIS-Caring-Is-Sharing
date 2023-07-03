@@ -8,22 +8,22 @@ import java.net.SocketTimeoutException;
 import util.*;
 
 class DataConnection implements Runnable {
-    private String server_ip;
     private int server_port;
     private int chunksize;
     private int upload_id;
-    File file;
+    private String server_ip;
+    private File file;
     private NetworkUtil network_util;
     private Thread thread;
 
     DataConnection(JSONObject _response_body, File _file) {
         this.extract_metadata(_response_body);
+        this.file = _file;
         try {
             this.network_util = new NetworkUtil(this.server_ip, this.server_port);
         } catch (Exception exception) {
             ClientLoader.debug(exception);
         }
-        this.file = _file;
         this.thread = new Thread(this);
         this.thread.start();
     }
@@ -52,10 +52,10 @@ class DataConnection implements Runnable {
     }
 
     void extract_metadata(JSONObject _response_body) {
-        this.server_ip = (String) _response_body.get("server_ip");
         this.server_port = (Integer) _response_body.get("server_port");
-        this.upload_id = (Integer) _response_body.get("upload_id");
         this.chunksize = (Integer) _response_body.get("chunksize");
+        this.upload_id = (Integer) _response_body.get("upload_id");
+        this.server_ip = (String) _response_body.get("server_ip");
     }
 
     boolean send_chunks() {

@@ -2,7 +2,7 @@ package server;
 
 import java.nio.file.Paths;
 
-class ServerLoader {
+public class ServerLoader {
     public static final String server_ip = "127.0.0.1";
     public static final int control_port = 33333;
     public static final int data_port = 33334;

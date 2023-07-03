@@ -11,12 +11,12 @@ import util.*;
 import exception.*;
 
 public class RemoteCLI {
-    private Path working_directory;
     private User user;
+    private Path working_directory;
 
     public RemoteCLI(String _root_directory, User _user) {
-        this.working_directory = Paths.get(_root_directory);
         this.user = _user;
+        this.working_directory = Paths.get(_root_directory);
     }
 
     public File mkdir(String _directory_name) throws DirectoryExistsException {
@@ -105,7 +105,7 @@ public class RemoteCLI {
             root_relative_working_directory = root_relative_working_directory.substring(0,
                     root_relative_working_directory.length() - 1);
         }
-        this.user.setWorkingDir(root_relative_working_directory);
+        this.user.set_working_directory(root_relative_working_directory);
     }
 
     File run_cd_diagnostics(String _relative_pathstring) throws DirectoryDoesNotExistException, NotADirectoryException {
@@ -188,5 +188,4 @@ public class RemoteCLI {
     Boolean is_public(String _relative_path) {
         return _relative_path.endsWith(".publ");
     }
-
 }

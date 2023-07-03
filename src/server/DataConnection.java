@@ -6,15 +6,15 @@ import java.util.ArrayList;
 import util.*;
 
 class DataConnection implements Runnable {
-    private UploadMetadata upload_metadata;
-    private Thread thread;
-    private NetworkUtil network_util;
     private Request request;
+    private Thread thread;
+    private UploadMetadata upload_metadata;
+    private NetworkUtil network_util;
 
     DataConnection(NetworkUtil _network_util) {
+        this.thread = new Thread(this);
         this.upload_metadata = null;
         this.network_util = _network_util;
-        this.thread = new Thread(this);
         this.thread.start();
     }
 
@@ -68,7 +68,6 @@ class DataConnection implements Runnable {
             }
             this.send_response(new Response(ResponseCode.FAILED_UPLOAD));
         }
-
     }
 
     void send_response(Response _response) {
@@ -139,5 +138,4 @@ class DataConnection implements Runnable {
         }
         return total_chunksize;
     }
-
 }

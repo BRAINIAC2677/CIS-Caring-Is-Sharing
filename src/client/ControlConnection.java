@@ -165,8 +165,8 @@ class ControlConnection implements Runnable {
 
     @Override
     public void run() {
+        Scanner console = new Scanner(System.in);
         try {
-            Scanner console = new Scanner(System.in);
             while (true) {
                 String input = console.nextLine();
                 if (this.cli.getState() instanceof InitialState) {
@@ -187,6 +187,7 @@ class ControlConnection implements Runnable {
             } catch (Exception exception) {
                 ClientLoader.debug(exception);
             }
+            console.close();
         }
     }
 }

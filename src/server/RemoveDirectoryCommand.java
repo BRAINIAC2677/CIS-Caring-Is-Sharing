@@ -16,7 +16,7 @@ class RemoveDirectoryCommand implements Command {
         String directory_name = _request.get_parameters()[0];
         try {
             ControlConnectionListener.get_instance().get_user_base()
-                    .get_remote_cli(this.request_handler.current_user.getUsername())
+                    .get_remote_cli(this.request_handler.current_user.get_username())
                     .rmdir(directory_name);
             response = new Response(ResponseCode.SUCCESSFUL_RMDIR);
         } catch (Exception exception) {
