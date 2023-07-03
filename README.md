@@ -4,10 +4,10 @@
 <br>
 CIS is a Java-based application that provides FTP (File Transfer Protocol) functionality for transferring files between a client and a server.
 
-<img src="assets/two.png" height=300 width=500>
-<img src="assets/one.png" height=300 width=300>
-<img src="assets/three.png" height=300 width=500>
-<img src="assets/four.png" height=300 width=300>
+<img src="assets/one.png" height=500 width=500>
+<img src="assets/four.png" height=500 width=500>
+<img src="assets/two.png" height=500 width=700>
+<img src="assets/three.png" height=500 width=700>
 
 ## Features
 
