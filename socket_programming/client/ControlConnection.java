@@ -5,13 +5,13 @@ import org.json.simple.JSONObject;
 
 import util.*;
 
-class RequestSender implements Runnable {
+class ControlConnection implements Runnable {
     private NetworkUtil network_util;
     private CLI cli;
     private LoggedinSession loggedin_session;
     private Thread thread;
 
-    RequestSender(NetworkUtil _network_util) {
+    ControlConnection(NetworkUtil _network_util) {
         this.network_util = _network_util;
         this.cli = new CLI();
         this.loggedin_session = new LoggedinSession(this);

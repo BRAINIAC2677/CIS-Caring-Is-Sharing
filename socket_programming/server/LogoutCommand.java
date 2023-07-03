@@ -3,9 +3,9 @@ package server;
 import util.*;
 
 public class LogoutCommand implements Command {
-    private RequestHandler request_handler;
+    private ControlConnection request_handler;
 
-    public LogoutCommand(RequestHandler _request_handler) {
+    public LogoutCommand(ControlConnection _request_handler) {
         this.request_handler = _request_handler;
     }
 
@@ -15,7 +15,8 @@ public class LogoutCommand implements Command {
         User current_user = this.request_handler.current_user;
         if (current_user != null) {
             try {
-                User user = Server.get_instance().get_user_base().logout_user(current_user.getUsername());
+                User user = ControlConnectionListener.get_instance().get_user_base()
+                        .logout_user(current_user.getUsername());
                 this.request_handler.current_user = null;
                 response = new Response(ResponseCode.SUCCESSFUL_LOGOUT);
 

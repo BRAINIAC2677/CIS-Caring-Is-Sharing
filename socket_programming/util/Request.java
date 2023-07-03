@@ -10,13 +10,13 @@ public class Request implements Serializable {
 
     public Request(String _verb) {
         this.verb = _verb;
-        this.body = null;
+        this.body = new JSONObject();
     }
 
     public Request(String _verb, String[] _parameters) {
         this.verb = _verb;
         this.parameters = _parameters;
-        this.body = null;
+        this.body = new JSONObject();
     }
 
     public Request(String _verb, String[] _parameters, JSONObject _body) {
@@ -50,6 +50,11 @@ public class Request implements Serializable {
 
     public JSONObject getBody() {
         return this.body;
+    }
+
+    public Request add_obj(String _key, Object _obj) {
+        this.body.put(_key, _obj);
+        return this;
     }
 
 }

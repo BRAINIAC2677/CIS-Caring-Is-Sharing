@@ -4,9 +4,9 @@ import util.*;
 import exception.*;
 
 class ChangeDirectoryCommand implements Command {
-    private RequestHandler request_handler;
+    private ControlConnection request_handler;
 
-    public ChangeDirectoryCommand(RequestHandler _request_handler) {
+    public ChangeDirectoryCommand(ControlConnection _request_handler) {
         this.request_handler = _request_handler;
     }
 
@@ -15,7 +15,8 @@ class ChangeDirectoryCommand implements Command {
         Response response;
         String directory_name = _request.getParameters()[0];
         try {
-            Server.get_instance().get_user_base().get_remote_cli(this.request_handler.current_user.getUsername())
+            ControlConnectionListener.get_instance().get_user_base()
+                    .get_remote_cli(this.request_handler.current_user.getUsername())
                     .cd(directory_name);
             response = (new Response(ResponseCode.SUCCESSFUL_CD)).add_user(this.request_handler.current_user);
         } catch (Exception exception) {

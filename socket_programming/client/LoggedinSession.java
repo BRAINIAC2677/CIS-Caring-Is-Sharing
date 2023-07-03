@@ -16,9 +16,9 @@ class LoggedinSession {
     public static final String GREEN_ANSI = "\u001B[32m";
     public static final String RESET_ANSI = "\u001B[0m";
 
-    private RequestSender request_sender;
+    private ControlConnection request_sender;
 
-    LoggedinSession(RequestSender _request_sender) {
+    LoggedinSession(ControlConnection _request_sender) {
         this.request_sender = _request_sender;
     }
 
@@ -250,74 +250,25 @@ class LoggedinSession {
         if (!this.run_up_diagnostics(_splitted_input)) {
             return;
         }
-        if (_splitted_input[0].equalsIgnoreCase("up")) {
-            File file = new File(_splitted_input[1]);
-            if (!file.exists()) {
-                this.request_sender.get_cli().update(_splitted_input[1] + " file does not exist.");
-                return;
-            }
-            Integer file_request_id = null;
-            try {
-                file_request_id = Integer.parseInt(_splitted_input[3]);
-            } catch (Exception exception) {
-                exception.printStackTrace();
-            }
-            if (!(_splitted_input[3].equalsIgnoreCase("public") || _splitted_input[3].equalsIgnoreCase("private"))
-                    && file_request_id == null) {
-                this.request_sender.get_cli().unknownCommand();
-                return;
-            }
-            Request request;
-            if (file_request_id == null) {
-                String[] tempParameters = { _splitted_input[2], Integer.toString((int) file.length()),
-                        _splitted_input[3] };
-                request = new Request("upmeta", tempParameters);
-            } else {
-                String[] tempParameters = { _splitted_input[2], Integer.toString((int) file.length()),
-                        _splitted_input[3],
-                        file_request_id.toString() };
-                request = new Request("upmeta", tempParameters);
-            }
-            Response response = this.request_sender.get_response(request);
-            if (response.getCode() == ResponseCode.SUCCESSFUL_BUFFER_ALLOCATION) {
-                FileInputStream fis;
-                int chunkSize = (int) response.getBody().get("chunk_size");
-                int remainingFileSize = (int) file.length();
 
-                try {
-                    fis = new FileInputStream(file);
-                    while (remainingFileSize > 0) {
+        System.out.println("ls.up: success run_up_diagnostics.");
 
-                        System.out.println("remainingFileSize: " + remainingFileSize + " chunkSize: " + chunkSize);
-
-                        byte[] chunk = new byte[Math.min(remainingFileSize, chunkSize)];
-                        fis.read(chunk);
-                        remainingFileSize -= chunk.length;
-                        JSONObject body = new JSONObject();
-                        body.put("chunk", chunk);
-                        request = (new Request("updata")).setBody(body);
-                        response = this.request_sender.get_response(request);
-                        if (response.getCode() == ResponseCode.SUCCESSFUL_BUFFER_ALLOCATION) {
-                            fis.read(chunk);
-                        } else {
-                            this.request_sender.get_cli().update("unsuccessful upload.");
-                            return;
-                        }
-                    }
-                    request = new Request("upcomp");
-                    response = this.request_sender.get_response(request);
-                    if (response.getCode() == ResponseCode.SUCCESSFUL_UPLOAD) {
-                        this.request_sender.get_cli().update("successful upload.");
-                    } else {
-                        this.request_sender.get_cli().update("unsuccessful upload.");
-                    }
-                    fis.close();
-                } catch (Exception exception) {
-                    exception.printStackTrace();
-                }
-            } else {
-                this.request_sender.get_cli().update(_splitted_input[1] + " was not uploaded due to peak traffic.");
-            }
+        File file = new File(_splitted_input[1]);
+        String[] parameters = { _splitted_input[2], Integer.toString((int) file.length()), _splitted_input[3] };
+        Request request = new Request("upmeta", parameters);
+        Response response = this.request_sender.get_response(request);
+        switch (response.getCode()) {
+            case SUCCESSFUL_BUFFER_ALLOCATION:
+                System.out.println("ls up: success buffer allocation.");
+                new DataConnection(response.getBody(), file);
+                break;
+            case FAILED_BUFFER_ALLOCATION:
+                out_error_msg("file was not uploaded due to peak traffic.");
+                this.request_sender.get_cli().update();
+                break;
+            default:
+                out_error_msg("failed upload. you may want to check the file request id.");
+                this.request_sender.get_cli().update();
         }
     }
 
@@ -327,7 +278,29 @@ class LoggedinSession {
             this.request_sender.get_cli().update();
             return false;
         }
+        File file = new File(_splitted_input[1]);
+        if ((!file.exists()) || (!file.isFile())) {
+            out_error_msg("file does not exist.");
+            this.request_sender.get_cli().update();
+            return false;
+        }
+        if (!(_splitted_input[3].equalsIgnoreCase("public") || _splitted_input[3].equalsIgnoreCase("private"))
+                && (!is_stoi(_splitted_input[3]))) {
+            out_error_msg("incorrect format. check the 4th argument.");
+            this.request_sender.get_cli().update();
+            return false;
+        }
         return true;
+    }
+
+    boolean is_stoi(String _s) {
+        try {
+            Integer.parseInt(_s);
+            return true;
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
+        }
     }
 
     void down(String[] _splitted_input) {
@@ -386,11 +359,11 @@ class LoggedinSession {
         fos.close();
     }
 
-    void out_error_msg(String _msg) {
+    public static void out_error_msg(String _msg) {
         System.out.println(_msg);
     }
 
-    void out_success_msg(String _msg) {
+    public static void out_success_msg(String _msg) {
         System.out.println(_msg);
     }
 

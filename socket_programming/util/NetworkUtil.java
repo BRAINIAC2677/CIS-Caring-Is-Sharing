@@ -6,12 +6,14 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class NetworkUtil {
+    private static int timeout = 30000;
     private Socket socket;
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
 
     public NetworkUtil(String s, int port) throws IOException {
         this.socket = new Socket(s, port);
+        this.socket.setSoTimeout(timeout);
         oos = new ObjectOutputStream(socket.getOutputStream());
         ois = new ObjectInputStream(socket.getInputStream());
     }

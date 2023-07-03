@@ -4,13 +4,13 @@ import java.util.HashMap;
 
 import util.*;
 
-class RequestHandler implements Runnable {
+class ControlConnection implements Runnable {
     User current_user;
     private NetworkUtil network_util;
     private Thread thread;
     private HashMap<String, Command> commands;
 
-    RequestHandler(NetworkUtil _network_util) {
+    ControlConnection(NetworkUtil _network_util) {
         this.commands = new HashMap<String, Command>();
         this.commands.put("regi", new RegistrationCommand(this));
         this.commands.put("logi", new LoginCommand(this));
@@ -64,7 +64,8 @@ class RequestHandler implements Runnable {
             try {
                 this.network_util.closeConnection();
                 if (this.current_user != null) {
-                    Server.get_instance().get_user_base().logout_user(this.current_user.getUsername());
+                    ControlConnectionListener.get_instance().get_user_base()
+                            .logout_user(this.current_user.getUsername());
                     this.current_user = null;
                 }
             } catch (Exception exception) {

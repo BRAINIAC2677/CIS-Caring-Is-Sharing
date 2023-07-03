@@ -7,7 +7,7 @@ public class Client {
     public Client(String serverAddress, int serverPort) {
         try {
             NetworkUtil network_util = new NetworkUtil(serverAddress, serverPort);
-            new RequestSender(network_util);
+            new ControlConnection(network_util);
         } catch (Exception exception) {
             exception.printStackTrace();
         }

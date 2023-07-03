@@ -4,9 +4,9 @@ import util.*;
 import exception.*;
 
 class LoginCommand implements Command {
-    private RequestHandler request_handler;
+    private ControlConnection request_handler;
 
-    public LoginCommand(RequestHandler _request_handler) {
+    public LoginCommand(ControlConnection _request_handler) {
         this.request_handler = _request_handler;
     }
 
@@ -16,7 +16,7 @@ class LoginCommand implements Command {
         String username = _request.getParameters()[0];
         String password = _request.getParameters()[1];
         try {
-            User user = Server.get_instance().get_user_base().login_user(username, password);
+            User user = ControlConnectionListener.get_instance().get_user_base().login_user(username, password);
             this.request_handler.current_user = user;
             response = (new Response(ResponseCode.SUCCESSFUL_LOGIN)).add_user(user);
         } catch (Exception exception) {

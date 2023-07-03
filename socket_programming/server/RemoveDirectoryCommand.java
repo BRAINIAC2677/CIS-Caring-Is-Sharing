@@ -4,9 +4,9 @@ import util.*;
 import exception.*;
 
 class RemoveDirectoryCommand implements Command {
-    private RequestHandler request_handler;
+    private ControlConnection request_handler;
 
-    public RemoveDirectoryCommand(RequestHandler _request_handler) {
+    public RemoveDirectoryCommand(ControlConnection _request_handler) {
         this.request_handler = _request_handler;
     }
 
@@ -15,7 +15,8 @@ class RemoveDirectoryCommand implements Command {
         Response response;
         String directory_name = _request.getParameters()[0];
         try {
-            Server.get_instance().get_user_base().get_remote_cli(this.request_handler.current_user.getUsername())
+            ControlConnectionListener.get_instance().get_user_base()
+                    .get_remote_cli(this.request_handler.current_user.getUsername())
                     .rmdir(directory_name);
             response = new Response(ResponseCode.SUCCESSFUL_RMDIR);
         } catch (Exception exception) {

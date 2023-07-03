@@ -119,6 +119,7 @@ public class RemoteCLI {
         File directory;
         if (_relative_pathstring.equals(".")) {
             directory = this.working_directory.toFile();
+            System.out.println(directory.isDirectory());
         } else {
             directory = this.run_ls_diagnostics(_relative_pathstring);
         }
@@ -153,7 +154,7 @@ public class RemoteCLI {
         this.write_to_file(file, _filecontent);
         PublicFile cis_file = new PublicFile(file.getPath().toString());
         if (_is_public) {
-            Server.get_instance().add_public_file(cis_file);
+            ControlConnectionListener.get_instance().add_public_file(cis_file);
         }
         return cis_file;
     }
@@ -174,7 +175,7 @@ public class RemoteCLI {
     }
 
     public byte[] get_filecontent(int _fileid) throws Exception {
-        PublicFile public_file = Server.get_instance().get_public_file(_fileid);
+        PublicFile public_file = ControlConnectionListener.get_instance().get_public_file(_fileid);
         String _root_relative_pathstring = public_file.get_pathstring();
         File file = new File(_root_relative_pathstring);
         byte[] filecontent = new byte[(int) file.length()];

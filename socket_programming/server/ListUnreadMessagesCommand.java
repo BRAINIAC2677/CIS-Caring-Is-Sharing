@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import util.*;
 
 class ListUnreadMessagesCommand implements Command {
-    private RequestHandler request_handler;
+    private ControlConnection request_handler;
 
-    public ListUnreadMessagesCommand(RequestHandler _request_handler) {
+    public ListUnreadMessagesCommand(ControlConnection _request_handler) {
         this.request_handler = _request_handler;
     }
 

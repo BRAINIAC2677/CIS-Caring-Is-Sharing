@@ -6,9 +6,9 @@ import util.*;
 import exception.*;
 
 class ListDirectoryCommand implements Command {
-    private RequestHandler request_handler;
+    private ControlConnection request_handler;
 
-    public ListDirectoryCommand(RequestHandler _request_handler) {
+    public ListDirectoryCommand(ControlConnection _request_handler) {
         this.request_handler = _request_handler;
     }
 
@@ -17,7 +17,7 @@ class ListDirectoryCommand implements Command {
         Response response;
         String directory_name = _request.getParameters()[0];
         try {
-            HashMap<String, Boolean> files = Server.get_instance().get_user_base()
+            HashMap<String, Boolean> files = ControlConnectionListener.get_instance().get_user_base()
                     .get_remote_cli(this.request_handler.current_user.getUsername())
                     .ls(directory_name);
             response = (new Response(ResponseCode.SUCCESSFUL_LS)).add_user(this.request_handler.current_user)

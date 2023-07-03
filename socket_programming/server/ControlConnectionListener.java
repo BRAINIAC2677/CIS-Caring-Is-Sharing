@@ -12,39 +12,55 @@ import java.net.Socket;
 
 import util.*;
 
-class Server {
+class ControlConnectionListener implements Runnable {
     private int current_buffersize;
     private int max_buffersize;
     private int min_chunksize;
     private int max_chunksize;
     private HashMap<Integer, PublicFile> public_files;
     private HashMap<Integer, FileRequest> file_requests;
-    private ServerSocket server_socket;
+    private HashMap<Integer, UploadMetadata> upload_metadatas;
+    private ServerSocket control_socket;
     private UserBase user_base;
-    private static Server instance;
+    private Thread thread;
 
-    private Server(int _max_buffersize, int _min_chunksize, int _max_chunksize) {
+    private static ControlConnectionListener instance;
+
+    private ControlConnectionListener() {
+        this.current_buffersize = 0;
+        this.max_buffersize = ServerLoader.max_buffersize;
+        this.min_chunksize = ServerLoader.min_chunksize;
+        this.max_chunksize = ServerLoader.max_chunksize;
+        this.public_files = new HashMap<Integer, PublicFile>();
+        this.file_requests = new HashMap<Integer, FileRequest>();
+        this.upload_metadatas = new HashMap<Integer, UploadMetadata>();
+        this.user_base = new UserBase();
         try {
-            this.current_buffersize = 0;
-            this.max_buffersize = _max_buffersize;
-            this.min_chunksize = _min_chunksize;
-            this.max_chunksize = _max_chunksize;
-            this.public_files = new HashMap<Integer, PublicFile>();
-            this.file_requests = new HashMap<Integer, FileRequest>();
-            this.server_socket = new ServerSocket(33333);
-            this.user_base = new UserBase();
-            instance = this;
+            this.control_socket = new ServerSocket(ServerLoader.control_port);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        this.thread = new Thread(this);
+        this.thread.start();
+    }
+
+    static ControlConnectionListener get_instance() {
+        if (ControlConnectionListener.instance == null) {
+            ControlConnectionListener.instance = new ControlConnectionListener();
+        }
+        return instance;
+    }
+
+    @Override
+    public void run() {
+        try {
             while (true) {
-                Socket client_socket = this.server_socket.accept();
+                Socket client_socket = this.control_socket.accept();
                 this.serve(client_socket);
             }
         } catch (Exception exception) {
             exception.printStackTrace();
         }
-    }
-
-    static Server get_instance() {
-        return instance;
     }
 
     void add_file_request(FileRequest _file_request) {
@@ -77,6 +93,23 @@ class Server {
         }
     }
 
+    void add_upload_metadata(UploadMetadata _upload_metadata) {
+        this.upload_metadatas.put(_upload_metadata.get_upload_id(), _upload_metadata);
+    }
+
+    void remove_upload_metadata(int _upload_id) {
+        if (this.upload_metadatas.containsKey(_upload_id)) {
+            this.upload_metadatas.remove(_upload_id);
+        }
+    }
+
+    UploadMetadata get_upload_metadata(int _upload_id) throws Exception {
+        if (this.upload_metadatas.containsKey(_upload_id)) {
+            return this.upload_metadatas.get(_upload_id);
+        }
+        throw new Exception("upload_metadata absent");
+    }
+
     ArrayList<PublicFile> get_public_files() {
         ArrayList<PublicFile> public_files_list = new ArrayList<PublicFile>();
         for (int fileid : this.public_files.keySet()) {
@@ -87,7 +120,7 @@ class Server {
 
     void serve(Socket _client_socket) throws IOException {
         NetworkUtil network_util = new NetworkUtil(_client_socket);
-        new RequestHandler(network_util);
+        new ControlConnection(network_util);
     }
 
     void broadcast_file_request(FileRequest _file_request) {
@@ -119,12 +152,4 @@ class Server {
         return min_chunksize + random.nextInt(max_chunksize - min_chunksize + 1);
     }
 
-    public static void main(String args[]) {
-        int max_buffersize = 2000000000;
-        int min_chunksize = 1000000000;
-        int max_chunksize = 2000000000;
-        if (instance == null) {
-            new Server(max_buffersize, min_chunksize, max_chunksize);
-        }
-    }
 }

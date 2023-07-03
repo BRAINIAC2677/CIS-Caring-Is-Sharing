@@ -6,9 +6,9 @@ import util.*;
 import exception.*;
 
 class DownloadCommand implements Command {
-    private RequestHandler request_handler;
+    private ControlConnection request_handler;
 
-    public DownloadCommand(RequestHandler _request_handler) {
+    public DownloadCommand(ControlConnection _request_handler) {
         this.request_handler = _request_handler;
     }
 
@@ -20,13 +20,13 @@ class DownloadCommand implements Command {
         try {
             byte[] filecontent;
             if (is_owner) {
-                filecontent = Server.get_instance().get_user_base()
+                filecontent = ControlConnectionListener.get_instance().get_user_base()
                         .get_remote_cli(this.request_handler.current_user.getUsername())
                         .get_filecontent(relative_pathstring);
 
             } else {
                 int fileid = Integer.parseInt(relative_pathstring);
-                filecontent = Server.get_instance().get_user_base()
+                filecontent = ControlConnectionListener.get_instance().get_user_base()
                         .get_remote_cli(this.request_handler.current_user.getUsername())
                         .get_filecontent(fileid);
             }
