@@ -14,8 +14,8 @@ public class RemoteCLI {
     private Path working_directory;
     private User user;
 
-    public RemoteCLI(String _working_directory, User _user) {
-        this.working_directory = Paths.get(_working_directory);
+    public RemoteCLI(String _root_directory, User _user) {
+        this.working_directory = Paths.get(_root_directory);
         this.user = _user;
     }
 
@@ -90,14 +90,15 @@ public class RemoteCLI {
     }
 
     Boolean is_in_root_directory() {
-        return this.working_directory.getNameCount() == 3;
+        return this.working_directory.getNameCount() == ServerLoader.root_directory_name_count;
     }
 
     void set_user_working_directory() {
         String root_relative_working_directory = "/";
         int name_count = this.working_directory.getNameCount();
-        if (name_count > 3) {
-            String[] splitted_names = this.working_directory.subpath(3, name_count).toString().split("/");
+        if (name_count > ServerLoader.root_directory_name_count) {
+            String[] splitted_names = this.working_directory.subpath(ServerLoader.root_directory_name_count, name_count)
+                    .toString().split("/");
             for (String splitted_name : splitted_names) {
                 root_relative_working_directory += this.get_filename(splitted_name) + "/";
             }
@@ -119,7 +120,6 @@ public class RemoteCLI {
         File directory;
         if (_relative_pathstring.equals(".")) {
             directory = this.working_directory.toFile();
-            System.out.println(directory.isDirectory());
         } else {
             directory = this.run_ls_diagnostics(_relative_pathstring);
         }
@@ -152,7 +152,7 @@ public class RemoteCLI {
         }
         file.createNewFile();
         this.write_to_file(file, _filecontent);
-        PublicFile cis_file = new PublicFile(file.getPath().toString());
+        PublicFile cis_file = new PublicFile(file.getPath().toString(), ServerLoader.root_directory_name_count);
         if (_is_public) {
             ControlConnectionListener.get_instance().add_public_file(cis_file);
         }

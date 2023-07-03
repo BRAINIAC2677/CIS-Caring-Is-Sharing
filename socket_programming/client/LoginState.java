@@ -9,13 +9,15 @@ class LoginState implements CLIState {
 
     @Override
     public void showPrompt() {
-        String prompt = "cis| login\nEnter credentials\n<username> <password>\n";
+        String prompt = ClientLoader.BLUE_ANSI + "\ncis | login\n" + ClientLoader.RESET_ANSI
+                + "---------------\n"
+                + "Enter credentials: <username> <password>\n";
         System.out.println(prompt);
     }
 
     @Override
     public void succeed() {
-        System.out.println("you are logged in!");
+        LoggedinSession.out_success_msg("you are logged in!");
         this.cli.setState(this.cli.getLoggedinState());
     }
 

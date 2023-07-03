@@ -13,14 +13,14 @@ class LoginCommand implements Command {
     @Override
     public Response execute(Request _request) {
         Response response;
-        String username = _request.getParameters()[0];
-        String password = _request.getParameters()[1];
+        String username = _request.get_parameters()[0];
+        String password = _request.get_parameters()[1];
         try {
             User user = ControlConnectionListener.get_instance().get_user_base().login_user(username, password);
             this.request_handler.current_user = user;
             response = (new Response(ResponseCode.SUCCESSFUL_LOGIN)).add_user(user);
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ServerLoader.debug(exception);
             if (exception instanceof UserNotFoundException) {
                 response = new Response(ResponseCode.USER_NOT_FOUND);
             } else if (exception instanceof UserAlreadyLoggedinException) {

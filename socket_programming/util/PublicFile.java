@@ -6,9 +6,11 @@ import java.nio.file.Paths;
 
 public class PublicFile implements Serializable {
     private String pathstring;
+    private int root_directory_name_count;
 
-    public PublicFile(String _pathstring) {
+    public PublicFile(String _pathstring, int _root_directory_name_count) {
         this.pathstring = _pathstring;
+        this.root_directory_name_count = _root_directory_name_count;
     }
 
     public static int get_fileid(String _pathstring) {
@@ -38,8 +40,8 @@ public class PublicFile implements Serializable {
     public String get_owner_name() {
         Path path = Paths.get(this.pathstring);
         String owner_name = "";
-        if (path.getNameCount() >= 3) {
-            owner_name = path.getName(2).toString();
+        if (path.getNameCount() >= this.root_directory_name_count) {
+            owner_name = path.getName(this.root_directory_name_count - 1).toString();
         }
         owner_name = owner_name.substring(0, owner_name.lastIndexOf("."));
         return owner_name;

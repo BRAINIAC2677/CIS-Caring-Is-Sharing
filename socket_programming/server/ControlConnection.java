@@ -18,6 +18,7 @@ class ControlConnection implements Runnable {
         this.commands.put("lsau", new ListUserCommand());
         this.commands.put("lslu", new ListUserCommand());
         this.commands.put("lspf", new ListPublicFileCommand());
+        this.commands.put("lsfr", new ListFileRequestCommand());
         this.commands.put("ls", new ListDirectoryCommand(this));
         this.commands.put("mkdir", new MakeDirectoryCommand(this));
         this.commands.put("rmdir", new RemoveDirectoryCommand(this));
@@ -36,7 +37,7 @@ class ControlConnection implements Runnable {
         try {
             this.network_util.write(_response);
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ServerLoader.debug(exception);
         }
     }
 
@@ -54,12 +55,12 @@ class ControlConnection implements Runnable {
         try {
             while (true) {
                 Request request = this.get_request();
-                String request_verb = request.getVerb();
+                String request_verb = request.get_verb();
                 Response response = this.commands.get(request_verb).execute(request);
                 this.send_response(response);
             }
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ServerLoader.debug(exception);
         } finally {
             try {
                 this.network_util.closeConnection();
@@ -69,7 +70,7 @@ class ControlConnection implements Runnable {
                     this.current_user = null;
                 }
             } catch (Exception exception) {
-                exception.printStackTrace();
+                ServerLoader.debug(exception);
             }
         }
     }

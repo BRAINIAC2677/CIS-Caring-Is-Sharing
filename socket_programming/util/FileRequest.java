@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class FileRequest implements Serializable {
     private int id;
-    private boolean is_responded;
+    private int response_count = 0;
     private String requestee;
     private String description;
 
@@ -13,8 +13,8 @@ public class FileRequest implements Serializable {
         return this;
     }
 
-    public FileRequest set_is_responded(boolean _is_responded) {
-        this.is_responded = _is_responded;
+    public FileRequest inc_response_count() {
+        this.response_count++;
         return this;
     }
 
@@ -32,8 +32,8 @@ public class FileRequest implements Serializable {
         return this.id;
     }
 
-    public boolean get_is_responded() {
-        return this.is_responded;
+    public int get_response_count() {
+        return this.response_count;
     }
 
     public String get_requestee() {

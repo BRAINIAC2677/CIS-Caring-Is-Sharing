@@ -15,17 +15,14 @@ class UploadCommand implements Command {
 
     @Override
     public Response execute(Request _request) {
-
-        System.out.println("upcom exe: start");
-
-        String filename = _request.getParameters()[0];
-        int filesize = Integer.parseInt(_request.getParameters()[1]);
-        Boolean is_public = (_request.getParameters()[2].equalsIgnoreCase("private") ? false : true);
+        String filename = _request.get_parameters()[0];
+        int filesize = Integer.parseInt(_request.get_parameters()[1]);
+        Boolean is_public = (_request.get_parameters()[2].equalsIgnoreCase("private") ? false : true);
         UploadMetadata upload_metadata = (new UploadMetadata(filename)).set_filesize(filesize).set_is_public(is_public)
                 .set_owner_username(this.request_handler.current_user.getUsername());
-        if (this.is_stoi(_request.getParameters()[2])) {
+        if (this.is_stoi(_request.get_parameters()[2])) {
             try {
-                int file_request_id = Integer.parseInt(_request.getParameters()[2]);
+                int file_request_id = Integer.parseInt(_request.get_parameters()[2]);
                 FileRequest file_request = ControlConnectionListener.get_instance().get_file_request(file_request_id);
                 upload_metadata.set_file_request(file_request);
             } catch (Exception exception) {
@@ -41,31 +38,8 @@ class UploadCommand implements Command {
                 this.response = (new Response(ResponseCode.SUCCESSFUL_BUFFER_ALLOCATION))
                         .add_obj("server_ip", ServerLoader.server_ip).add_obj("server_port", ServerLoader.data_port)
                         .add_obj("upload_id", upload_metadata.get_upload_id()).add_obj("chunksize", chunksize);
-                System.out.println("uc: success buffer allocation.");
-                // ArrayList<byte[]> chunks = this.receive_chunks();
-                // int total_chunksize = this.get_total_chunksize(chunks);
-                // if (filesize == total_chunksize) {
-                // byte[] file_content = this.merge_chunks(chunks);
-                // PublicFile cis_file = Server.get_instance().get_user_base()
-                // .get_remote_cli(this.request_handler.current_user.getUsername())
-                // .touch(filename,
-                // file_content, visibility);
-                // if (_request.getParameters().length > 3) {
-                // int file_request_id = Integer.parseInt(_request.getParameters()[3]);
-                // FileRequest file_request =
-                // Server.get_instance().get_file_request(file_request_id);
-                // FileResponse file_response = (new
-                // FileResponse()).set_file_request(file_request)
-                // .set_public_file(cis_file);
-                // Server.get_instance().get_user_base().get_user(file_request.get_requestee())
-                // .add_unread_file_response(file_response);
-                // }
-                // this.response = new Response(ResponseCode.SUCCESSFUL_UPLOAD);
-                // } else {
-                // this.response = new Response(ResponseCode.FAILED_UPLOAD);
-                // }
             } catch (Exception exception) {
-                exception.printStackTrace();
+                ServerLoader.debug(exception);
                 this.response = new Response(ResponseCode.FAILED_UPLOAD);
             } finally {
                 ControlConnectionListener.get_instance().release_buffer(filesize);
@@ -81,7 +55,7 @@ class UploadCommand implements Command {
             Integer.parseInt(_s);
             return true;
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ServerLoader.debug(exception);
             return false;
         }
     }
@@ -89,8 +63,8 @@ class UploadCommand implements Command {
     ArrayList<byte[]> receive_chunks() throws Exception {
         ArrayList<byte[]> chunks = new ArrayList<byte[]>();
         this.request = this.request_handler.get_request();
-        while (this.request.getVerb().equalsIgnoreCase("updata")) {
-            byte[] chunk = (byte[]) this.request.getBody().get("chunk");
+        while (this.request.get_verb().equalsIgnoreCase("updata")) {
+            byte[] chunk = (byte[]) this.request.get_body().get("chunk");
             chunks.add(chunk);
             this.response = new Response(ResponseCode.SUCCESSFUL_BUFFER_ALLOCATION);
             this.request_handler.send_response(this.response);

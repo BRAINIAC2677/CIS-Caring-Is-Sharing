@@ -27,7 +27,7 @@ class UserBase {
         this.create_user_root_directory(_username);
         this.all_users.put(_username, new_user);
         this.loggedin_users.put(_username, new_user);
-        this.remote_clis.put(_username, new RemoteCLI("socket_programming/storage/" + _username + ".publ", new_user));
+        this.remote_clis.put(_username, new RemoteCLI(ServerLoader.storage_directory + _username + ".publ", new_user));
         return new_user;
     }
 
@@ -39,10 +39,10 @@ class UserBase {
 
     void create_user_root_directory(String _username) {
         try {
-            String root_directory = "socket_programming/storage/" + _username + ".publ";
+            String root_directory = ServerLoader.storage_directory + _username + ".publ";
             FileUtil.create_directory(root_directory);
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ServerLoader.debug(exception);
         }
     }
 
@@ -50,7 +50,7 @@ class UserBase {
         this.run_login_diagnostics(_username, _password);
         User user = this.all_users.get(_username);
         this.loggedin_users.put(user.getUsername(), user);
-        this.remote_clis.put(_username, new RemoteCLI("socket_programming/storage/" + _username + ".publ", user));
+        this.remote_clis.put(_username, new RemoteCLI(ServerLoader.storage_directory + _username + ".publ", user));
         return user;
     }
 

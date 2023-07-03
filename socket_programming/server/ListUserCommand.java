@@ -9,7 +9,7 @@ class ListUserCommand implements Command {
     @Override
     public Response execute(Request _request) {
         ArrayList<String> usernames = new ArrayList<String>();
-        if (_request.getVerb().equalsIgnoreCase("lsau")) {
+        if (_request.get_verb().equalsIgnoreCase("lsau")) {
             usernames = ControlConnectionListener.get_instance().get_user_base().get_all_usernames();
         } else {
             usernames = ControlConnectionListener.get_instance().get_user_base().get_loggedin_usernames();

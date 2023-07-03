@@ -15,7 +15,7 @@ class ListDirectoryCommand implements Command {
     @Override
     public Response execute(Request _request) {
         Response response;
-        String directory_name = _request.getParameters()[0];
+        String directory_name = _request.get_parameters()[0];
         try {
             HashMap<String, Boolean> files = ControlConnectionListener.get_instance().get_user_base()
                     .get_remote_cli(this.request_handler.current_user.getUsername())
@@ -23,7 +23,7 @@ class ListDirectoryCommand implements Command {
             response = (new Response(ResponseCode.SUCCESSFUL_LS)).add_user(this.request_handler.current_user)
                     .add_obj("file_list", files);
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ServerLoader.debug(exception);
             if (exception instanceof DirectoryDoesNotExistException) {
                 response = new Response(ResponseCode.DIRECTORY_DOES_NOT_EXIST);
             } else {

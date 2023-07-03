@@ -25,30 +25,30 @@ public class Request implements Serializable {
         this.body = _body;
     }
 
-    public Request setVerb(String _verb) {
+    public Request set_verb(String _verb) {
         this.verb = _verb;
         return this;
     }
 
-    public Request setParameters(String[] _parameters) {
+    public Request set_parameters(String[] _parameters) {
         this.parameters = _parameters;
         return this;
     }
 
-    public Request setBody(JSONObject _body) {
+    public Request set_body(JSONObject _body) {
         this.body = _body;
         return this;
     }
 
-    public String getVerb() {
+    public String get_verb() {
         return this.verb;
     }
 
-    public String[] getParameters() {
+    public String[] get_parameters() {
         return this.parameters;
     }
 
-    public JSONObject getBody() {
+    public JSONObject get_body() {
         return this.body;
     }
 

@@ -17,21 +17,21 @@ public class Response implements Serializable {
         this.body = _body;
     }
 
-    public Response setCode(ResponseCode _code) {
+    public Response set_code(ResponseCode _code) {
         this.code = _code;
         return this;
     }
 
-    public Response setBody(JSONObject _body) {
+    public Response set_body(JSONObject _body) {
         this.body = _body;
         return this;
     }
 
-    public ResponseCode getCode() {
+    public ResponseCode get_code() {
         return this.code;
     }
 
-    public JSONObject getBody() {
+    public JSONObject get_body() {
         return this.body;
     }
 

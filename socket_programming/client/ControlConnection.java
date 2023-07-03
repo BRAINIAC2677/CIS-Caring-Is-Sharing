@@ -31,58 +31,70 @@ class ControlConnection implements Runnable {
                 response = (Response) this.network_util.read();
                 break;
             } catch (Exception exception) {
-                exception.printStackTrace();
+                ClientLoader.debug(exception);
             }
         }
         return response;
     }
 
     void handleInitialState(String _input) {
-        if (_input.equalsIgnoreCase("l")) {
+        String[] splitted_input = _input.split(" ");
+        if (splitted_input[0].equalsIgnoreCase("man")) {
+            Manual.show_man(splitted_input);
+            this.cli.update();
+        } else if (splitted_input.length == 1 && splitted_input[0].equalsIgnoreCase("login")) {
             this.cli.login();
-        } else if (_input.equalsIgnoreCase("r")) {
+        } else if (splitted_input.length == 1 && splitted_input[0].equalsIgnoreCase("reg")) {
             this.cli.register();
-        } else if (_input.equalsIgnoreCase("q")) {
+        } else if (splitted_input.length == 1 && splitted_input[0].equalsIgnoreCase("q")) {
             try {
                 this.network_util.closeConnection();
             } catch (Exception exception) {
-                exception.printStackTrace();
+                ClientLoader.debug(exception);
             }
             System.exit(0);
         } else {
             this.cli.unknownCommand();
+            this.cli.update();
         }
     }
 
     void handleLoginState(String _input) {
-        String[] parameters = _input.split(" ");
-        if (parameters.length == 2) {
-            Request request = new Request("logi", parameters);
+        String[] splitted_input = _input.split(" ");
+        if (splitted_input[0].equalsIgnoreCase("man")) {
+            Manual.show_man(splitted_input);
+            this.cli.update();
+        } else if (splitted_input.length == 2) {
+            Request request = new Request("logi", splitted_input);
             Response response = this.get_response(request);
-            if (response.getCode() == ResponseCode.SUCCESSFUL_LOGIN) {
-                JSONObject body = (JSONObject) response.getBody();
+            if (response.get_code() == ResponseCode.SUCCESSFUL_LOGIN) {
+                JSONObject body = (JSONObject) response.get_body();
                 User user = (User) body.get("user");
                 this.cli.setCurrentUser(user);
                 this.cli.succeed();
-            } else if (response.getCode() == ResponseCode.USER_NOT_FOUND) {
+            } else if (response.get_code() == ResponseCode.USER_NOT_FOUND) {
                 this.cli.failed("user not found.register first.");
-            } else if (response.getCode() == ResponseCode.USER_ALREADY_LOGGED_IN) {
+            } else if (response.get_code() == ResponseCode.USER_ALREADY_LOGGED_IN) {
                 this.cli.failed("user already logged in.");
-            } else if (response.getCode() == ResponseCode.INCORRECT_PASSWORD) {
+            } else if (response.get_code() == ResponseCode.INCORRECT_PASSWORD) {
                 this.cli.failed("incorrect password.");
             }
         } else {
             this.cli.unknownCommand();
+            this.cli.update();
         }
     }
 
     void handleRegisterState(String _input) {
-        String[] parameters = _input.split(" ");
-        if (parameters.length == 2) {
-            Request request = new Request("regi", parameters);
+        String[] splitted_input = _input.split(" ");
+        if (splitted_input[0].equalsIgnoreCase("man")) {
+            Manual.show_man(splitted_input);
+            this.cli.update();
+        } else if (splitted_input.length == 2) {
+            Request request = new Request("regi", splitted_input);
             Response response = this.get_response(request);
-            if (response.getCode() == ResponseCode.SUCCESSFUL_REGISTRATION) {
-                JSONObject body = (JSONObject) response.getBody();
+            if (response.get_code() == ResponseCode.SUCCESSFUL_REGISTRATION) {
+                JSONObject body = (JSONObject) response.get_body();
                 User user = (User) body.get("user");
                 this.cli.setCurrentUser(user);
                 this.cli.succeed();
@@ -91,6 +103,7 @@ class ControlConnection implements Runnable {
             }
         } else {
             this.cli.unknownCommand();
+            this.cli.update();
         }
     }
 
@@ -103,6 +116,9 @@ class ControlConnection implements Runnable {
                 break;
             case "lsum":
                 this.loggedin_session.lsum(splitted_input);
+                break;
+            case "lsfr":
+                this.loggedin_session.lsfr(splitted_input);
                 break;
             case "lsau":
                 this.loggedin_session.lsau(splitted_input);
@@ -137,8 +153,13 @@ class ControlConnection implements Runnable {
             case "down":
                 this.loggedin_session.down(splitted_input);
                 break;
+            case "man":
+                Manual.show_man(splitted_input);
+                this.cli.update();
+                break;
             default:
                 this.cli.unknownCommand();
+                this.cli.update();
         }
     }
 
@@ -159,12 +180,12 @@ class ControlConnection implements Runnable {
                 }
             }
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ClientLoader.debug(exception);
         } finally {
             try {
                 this.network_util.closeConnection();
             } catch (Exception exception) {
-                exception.printStackTrace();
+                ClientLoader.debug(exception);
             }
         }
     }

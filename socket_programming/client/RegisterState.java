@@ -9,13 +9,15 @@ class RegisterState implements CLIState {
 
     @Override
     public void showPrompt() {
-        String prompt = "cis | register\nEnter credentials\n<username> <password>\n";
+        String prompt = ClientLoader.BLUE_ANSI + "\ncis | register\n" + ClientLoader.RESET_ANSI
+                + "-----------------\n"
+                + "Enter credentials: <username> <password>\n";
         System.out.println(prompt);
     }
 
     @Override
     public void succeed() {
-        System.out.println("successful registration! you are logged in!");
+        LoggedinSession.out_success_msg("successful registration! you are logged in!");
         this.cli.setState(this.cli.getLoggedinState());
     }
 

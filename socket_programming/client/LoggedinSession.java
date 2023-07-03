@@ -3,19 +3,13 @@ package client;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import org.json.simple.JSONObject;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import util.*;
 
 class LoggedinSession {
-    public static final String RED_ANSI = "\u001B[31m";
-    public static final String GREEN_ANSI = "\u001B[32m";
-    public static final String RESET_ANSI = "\u001B[0m";
-
     private ControlConnection request_sender;
 
     LoggedinSession(ControlConnection _request_sender) {
@@ -23,19 +17,19 @@ class LoggedinSession {
     }
 
     void lsum(String[] _splitted_input) {
-        if (!this.run_ls_diagnostics(_splitted_input)) {
+        if (!this.run_lsvariant_diagnostics(_splitted_input)) {
             return;
         }
         Response response = this.request_sender.get_response(new Request("lsum"));
-        ArrayList<FileRequest> unread_file_requests = (ArrayList<FileRequest>) response.getBody()
+        ArrayList<FileRequest> unread_file_requests = (ArrayList<FileRequest>) response.get_body()
                 .get("unread_file_requests");
-        ArrayList<FileResponse> unread_file_responses = (ArrayList<FileResponse>) response.getBody()
+        ArrayList<FileResponse> unread_file_responses = (ArrayList<FileResponse>) response.get_body()
                 .get("unread_file_responses");
         this.out_lsum(unread_file_requests, unread_file_responses);
         this.request_sender.get_cli().update();
     }
 
-    boolean run_ls_diagnostics(String[] _splitted_input) {
+    boolean run_lsvariant_diagnostics(String[] _splitted_input) {
         if (_splitted_input.length > 1) {
             this.request_sender.get_cli().update("extra arguments given.");
             return false;
@@ -45,22 +39,24 @@ class LoggedinSession {
 
     void out_lsum(ArrayList<FileRequest> _unread_file_requests, ArrayList<FileResponse> _unread_file_responses) {
         for (FileResponse file_response : _unread_file_responses) {
-            System.out.println("- " + file_response.get_public_file().get_filename() + " having file id: "
-                    + file_response.get_public_file().get_fileid()
-                    + "have been uploaded in response to you request.");
+            System.out.println("- " + file_response.get_public_file().get_owner_name()
+                    + " has uploaded file in response to your request.\n"
+                    + "\tFILE NAME: " + file_response.get_public_file().get_filename() + "\n"
+                    + "\tFILE ID: " + file_response.get_public_file().get_fileid() + "\n\n");
         }
         for (FileRequest file_request : _unread_file_requests) {
-            System.out.println("- " + file_request.get_id() + " | " + file_request.get_requestee() + " | "
-                    + file_request.get_description());
+            System.out.println("- " + file_request.get_requestee() + " requested a file.\n"
+                    + "\tREQUEST ID: " + file_request.get_id() + "\n"
+                    + "\tDESCRIPTION: " + file_request.get_description() + "\n\n");
         }
     }
 
     void lsau(String[] _splitted_input) {
-        if (!this.run_ls_diagnostics(_splitted_input)) {
+        if (!this.run_lsvariant_diagnostics(_splitted_input)) {
             return;
         }
         Response response = this.request_sender.get_response(new Request("lsau"));
-        ArrayList<String> usernames = (ArrayList<String>) response.getBody().get("user_list");
+        ArrayList<String> usernames = (ArrayList<String>) response.get_body().get("user_list");
         this.out_lsu(usernames);
         this.request_sender.get_cli().update();
     }
@@ -72,29 +68,48 @@ class LoggedinSession {
     }
 
     void lslu(String[] _splitted_input) {
-        if (!this.run_ls_diagnostics(_splitted_input)) {
+        if (!this.run_lsvariant_diagnostics(_splitted_input)) {
             return;
         }
         Response response = this.request_sender.get_response(new Request("lslu"));
-        ArrayList<String> usernames = (ArrayList<String>) response.getBody().get("user_list");
+        ArrayList<String> usernames = (ArrayList<String>) response.get_body().get("user_list");
         this.out_lsu(usernames);
         this.request_sender.get_cli().update();
     }
 
     void lspf(String[] _splitted_input) {
-        if (!this.run_ls_diagnostics(_splitted_input)) {
+        if (!this.run_lsvariant_diagnostics(_splitted_input)) {
             return;
         }
         Response response = this.request_sender.get_response(new Request("lspf"));
-        ArrayList<PublicFile> public_files = (ArrayList<PublicFile>) response.getBody().get("public_file_list");
+        ArrayList<PublicFile> public_files = (ArrayList<PublicFile>) response.get_body().get("public_file_list");
         this.out_lspf(public_files);
         this.request_sender.get_cli().update();
     }
 
     void out_lspf(ArrayList<PublicFile> _public_files) {
         for (PublicFile public_file : _public_files) {
-            System.out.println(public_file.get_fileid() + "----" + public_file.get_filename() + "----"
-                    + public_file.get_owner_name());
+            System.out.println("FILE ID: " + public_file.get_fileid() + " | FILE NAME: " + public_file.get_filename()
+                    + " | OWNER: " + public_file.get_owner_name());
+        }
+    }
+
+    void lsfr(String[] _splitted_input) {
+        if (!this.run_lsvariant_diagnostics(_splitted_input)) {
+            return;
+        }
+        Response response = this.request_sender.get_response(new Request("lsfr"));
+        ArrayList<FileRequest> file_requests = (ArrayList<FileRequest>) response.get_body().get("file_request_list");
+        this.out_lsfr(file_requests);
+        this.request_sender.get_cli().update();
+    }
+
+    void out_lsfr(ArrayList<FileRequest> _file_requests) {
+        for (FileRequest file_request : _file_requests) {
+            System.out.println(
+                    "REQUEST ID: " + file_request.get_id() + " | REQUESTEE NAME: " + file_request.get_requestee()
+                            + " | RESPONSE COUNT: " + file_request.get_response_count() + " | DESCRIPTION: "
+                            + file_request.get_description() + "\n");
         }
     }
 
@@ -120,13 +135,13 @@ class LoggedinSession {
         }
         String[] parameters = { _splitted_input[1] };
         Response response = this.request_sender.get_response(new Request("mkdir", parameters));
-        this.out_mkdir(response.getCode());
+        this.out_mkdir(response.get_code());
         this.request_sender.get_cli().update();
     }
 
     boolean run_dir_diagnostics(String[] _splitted_input) {
         if (_splitted_input.length != 2) {
-            out_error_msg("incorrect format.more than one argument.");
+            out_error_msg("incorrect format.");
             this.request_sender.get_cli().update();
             return false;
         }
@@ -145,7 +160,7 @@ class LoggedinSession {
         }
         String[] parameters = { _splitted_input[1] };
         Response response = this.request_sender.get_response(new Request("rmdir", parameters));
-        this.out_rmdir(response.getCode());
+        this.out_rmdir(response.get_code());
         this.request_sender.get_cli().update();
     }
 
@@ -167,11 +182,11 @@ class LoggedinSession {
         }
         String[] parameters = { _splitted_input[1] };
         Response response = this.request_sender.get_response(new Request("cd", parameters));
-        if (response.getCode() == ResponseCode.SUCCESSFUL_CD) {
-            User current_user = (User) response.getBody().get("user");
+        if (response.get_code() == ResponseCode.SUCCESSFUL_CD) {
+            User current_user = (User) response.get_body().get("user");
             this.request_sender.get_cli().setCurrentUser(current_user);
         }
-        this.out_cd(response.getCode());
+        this.out_cd(response.get_code());
         this.request_sender.get_cli().update();
     }
 
@@ -188,24 +203,39 @@ class LoggedinSession {
     }
 
     void ls(String[] _splitted_input) {
-        if (!this.run_dir_diagnostics(_splitted_input)) {
+        if (!this.run_ls_diagnostics(_splitted_input)) {
             return;
         }
-        String[] parameters = { _splitted_input[1] };
-        Response response = this.request_sender.get_response(new Request("ls", parameters));
+        Response response;
+        if (_splitted_input.length == 1) {
+            String[] parameters = { "." };
+            response = this.request_sender.get_response(new Request("ls", parameters));
+        } else {
+            String[] parameters = { _splitted_input[1] };
+            response = this.request_sender.get_response(new Request("ls", parameters));
+        }
         this.out_ls(response);
         this.request_sender.get_cli().update();
     }
 
+    boolean run_ls_diagnostics(String[] _splitted_input) {
+        if (_splitted_input.length > 2) {
+            out_error_msg("incorrect format.");
+            this.request_sender.get_cli().update();
+            return false;
+        }
+        return true;
+    }
+
     void out_ls(Response _response) {
-        switch (_response.getCode()) {
+        switch (_response.get_code()) {
             case SUCCESSFUL_LS:
-                HashMap<String, Boolean> files = (HashMap<String, Boolean>) _response.getBody().get("file_list");
+                HashMap<String, Boolean> files = (HashMap<String, Boolean>) _response.get_body().get("file_list");
                 for (String file_name : files.keySet()) {
                     if (files.get(file_name)) {
-                        System.out.println(GREEN_ANSI + "- " + file_name + RESET_ANSI);
+                        System.out.println(ClientLoader.GREEN_ANSI + "- " + file_name + ClientLoader.RESET_ANSI);
                     } else {
-                        System.out.println(RED_ANSI + "- " + file_name + RESET_ANSI);
+                        System.out.println(ClientLoader.RED_ANSI + "- " + file_name + ClientLoader.RESET_ANSI);
                     }
                 }
                 break;
@@ -223,7 +253,7 @@ class LoggedinSession {
         String description = this.get_rf_description(_splitted_input);
         String[] parameters = { description };
         Response response = this.request_sender.get_response(new Request("rf", parameters));
-        this.out_rf(response.getCode());
+        this.out_rf(response.get_code());
         this.request_sender.get_cli().update();
     }
 
@@ -250,17 +280,14 @@ class LoggedinSession {
         if (!this.run_up_diagnostics(_splitted_input)) {
             return;
         }
-
-        System.out.println("ls.up: success run_up_diagnostics.");
-
         File file = new File(_splitted_input[1]);
         String[] parameters = { _splitted_input[2], Integer.toString((int) file.length()), _splitted_input[3] };
         Request request = new Request("upmeta", parameters);
         Response response = this.request_sender.get_response(request);
-        switch (response.getCode()) {
+        switch (response.get_code()) {
             case SUCCESSFUL_BUFFER_ALLOCATION:
-                System.out.println("ls up: success buffer allocation.");
-                new DataConnection(response.getBody(), file);
+                new DataConnection(response.get_body(), file);
+                this.request_sender.get_cli().update();
                 break;
             case FAILED_BUFFER_ALLOCATION:
                 out_error_msg("file was not uploaded due to peak traffic.");
@@ -298,7 +325,7 @@ class LoggedinSession {
             Integer.parseInt(_s);
             return true;
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ClientLoader.debug(exception);
             return false;
         }
     }
@@ -324,18 +351,18 @@ class LoggedinSession {
             String[] temp_parameters = { _splitted_input[4], _splitted_input[3] };
             Request request = new Request("down", temp_parameters);
             Response response = this.request_sender.get_response(request);
-            if (response.getCode() == ResponseCode.SUCCESSFUL_DOWNLOAD) {
-                byte[] filecontent = (byte[]) response.getBody().get("filecontent");
+            if (response.get_code() == ResponseCode.SUCCESSFUL_DOWNLOAD) {
+                byte[] filecontent = (byte[]) response.get_body().get("filecontent");
                 Path filepath = Paths.get(_splitted_input[1], _splitted_input[2]);
                 File download_destination_file = filepath.toFile();
                 try {
                     this.write_to_file(download_destination_file, filecontent);
                 } catch (Exception exception) {
-                    exception.printStackTrace();
+                    ClientLoader.debug(exception);
                 } finally {
                     this.request_sender.get_cli().update("successful download.");
                 }
-            } else if (response.getCode() == ResponseCode.DIRECTORY_DOES_NOT_EXIST) {
+            } else if (response.get_code() == ResponseCode.DIRECTORY_DOES_NOT_EXIST) {
 
                 this.request_sender.get_cli().update(_splitted_input[3] + " does not exist.");
             } else {
@@ -360,11 +387,11 @@ class LoggedinSession {
     }
 
     public static void out_error_msg(String _msg) {
-        System.out.println(_msg);
+        System.out.println(ClientLoader.RED_ANSI + _msg + ClientLoader.RESET_ANSI);
     }
 
     public static void out_success_msg(String _msg) {
-        System.out.println(_msg);
+        System.out.println(ClientLoader.GREEN_ANSI + _msg + ClientLoader.RESET_ANSI);
     }
 
 }

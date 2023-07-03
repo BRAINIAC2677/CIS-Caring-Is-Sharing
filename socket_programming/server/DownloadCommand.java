@@ -15,8 +15,8 @@ class DownloadCommand implements Command {
     @Override
     public Response execute(Request _request) {
         Response response;
-        boolean is_owner = (_request.getParameters()[0].equalsIgnoreCase("-o") ? true : false);
-        String relative_pathstring = _request.getParameters()[1];
+        boolean is_owner = (_request.get_parameters()[0].equalsIgnoreCase("-o") ? true : false);
+        String relative_pathstring = _request.get_parameters()[1];
         try {
             byte[] filecontent;
             if (is_owner) {
@@ -33,7 +33,7 @@ class DownloadCommand implements Command {
             response = (new Response(ResponseCode.SUCCESSFUL_DOWNLOAD)).add_obj("filecontent", filecontent);
 
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ServerLoader.debug(exception);
             if (exception instanceof DirectoryDoesNotExistException) {
                 response = new Response(ResponseCode.DIRECTORY_DOES_NOT_EXIST);
             } else {

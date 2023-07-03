@@ -9,7 +9,10 @@ class InitialState implements CLIState {
 
     @Override
     public void showPrompt() {
-        String prompt = "cis | caring is sharing\nDo you want to login?(press l/L)\nDo you want to register?(press r/R)\nDo you want to quit?(press q/Q)";
+        String prompt = ClientLoader.BLUE_ANSI + "\ncis | caring is sharing\n" + ClientLoader.RESET_ANSI
+                + "------------------------\n"
+                + "Do you want to login?(type login)\n" + "Do you want to register?(type reg)\n"
+                + "Do you want to quit?(press q/Q)";
         System.out.println(prompt);
     }
 

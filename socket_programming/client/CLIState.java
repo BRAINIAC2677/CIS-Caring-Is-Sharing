@@ -19,7 +19,7 @@ public interface CLIState {
     }
 
     public default void unknownCommand() {
-        System.out.println("unknown/invalid command.");
+        LoggedinSession.out_error_msg("unknown/invalid command.");
     }
 
 }

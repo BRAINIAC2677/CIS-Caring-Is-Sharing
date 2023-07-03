@@ -13,9 +13,8 @@ class DataConnectionListener implements Runnable {
     private DataConnectionListener() {
         try {
             this.data_socket = new ServerSocket(ServerLoader.data_port);
-            System.out.println("data port listening." + ServerLoader.data_port);
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ServerLoader.debug(exception);
         }
         this.thread = new Thread(this);
         this.thread.start();
@@ -30,15 +29,13 @@ class DataConnectionListener implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("starting data port listening.");
         while (true) {
             try {
                 Socket client_socket = this.data_socket.accept();
                 NetworkUtil network_util = new NetworkUtil(client_socket);
                 new DataConnection(network_util);
-                System.out.println("listened a new data connection.");
             } catch (Exception exception) {
-                exception.printStackTrace();
+                ServerLoader.debug(exception);
             }
         }
     }

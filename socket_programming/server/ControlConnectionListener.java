@@ -38,7 +38,7 @@ class ControlConnectionListener implements Runnable {
         try {
             this.control_socket = new ServerSocket(ServerLoader.control_port);
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ServerLoader.debug(exception);
         }
         this.thread = new Thread(this);
         this.thread.start();
@@ -59,7 +59,7 @@ class ControlConnectionListener implements Runnable {
                 this.serve(client_socket);
             }
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ServerLoader.debug(exception);
         }
     }
 
@@ -86,7 +86,6 @@ class ControlConnectionListener implements Runnable {
 
     PublicFile get_public_file(int _fileid) throws DirectoryDoesNotExistException {
         if (this.public_files.containsKey(_fileid)) {
-            System.out.println("gotch");
             return this.public_files.get(_fileid);
         } else {
             throw new DirectoryDoesNotExistException(Integer.toString(_fileid));
@@ -116,6 +115,14 @@ class ControlConnectionListener implements Runnable {
             public_files_list.add(this.public_files.get(fileid));
         }
         return public_files_list;
+    }
+
+    ArrayList<FileRequest> get_file_requests() {
+        ArrayList<FileRequest> file_request_list = new ArrayList<FileRequest>();
+        for (int request_id : this.file_requests.keySet()) {
+            file_request_list.add(this.file_requests.get(request_id));
+        }
+        return file_request_list;
     }
 
     void serve(Socket _client_socket) throws IOException {

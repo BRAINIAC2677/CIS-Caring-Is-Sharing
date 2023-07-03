@@ -18,11 +18,10 @@ class DataConnection implements Runnable {
 
     DataConnection(JSONObject _response_body, File _file) {
         this.extract_metadata(_response_body);
-        System.out.println(this.server_port);
         try {
             this.network_util = new NetworkUtil(this.server_ip, this.server_port);
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ClientLoader.debug(exception);
         }
         this.file = _file;
         this.thread = new Thread(this);
@@ -33,26 +32,21 @@ class DataConnection implements Runnable {
     public void run() {
         try {
             Response response = this.get_response(new Request("upid").add_obj("upload_id", this.upload_id));
-            if (response.getCode() != ResponseCode.SUCCESSFUL_OPERATION) {
+            if (response.get_code() != ResponseCode.SUCCESSFUL_OPERATION) {
                 return;
             }
             if (!this.send_chunks()) {
-                // todo: show unsuccessful upload
+                LoggedinSession.out_error_msg("unsuccessful upload.");
                 return;
             }
-
-            System.out.println("dc: sent all chunks.");
-
             response = this.get_response(new Request("upcomp"));
-            if (response.getCode() == ResponseCode.SUCCESSFUL_UPLOAD) {
-                // todo: show successful upload
-                System.out.println("dc: successful upload.");
+            if (response.get_code() == ResponseCode.SUCCESSFUL_UPLOAD) {
+                LoggedinSession.out_success_msg("successful upload.");
             } else {
-                // todo: show unsuccessful upload
-                System.out.println("dc: unsuccessful upload.");
+                LoggedinSession.out_error_msg("unsuccessful upload.");
             }
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ClientLoader.debug(exception);
         }
 
     }
@@ -69,23 +63,21 @@ class DataConnection implements Runnable {
         try {
             FileInputStream fis = new FileInputStream(this.file);
             while (remaining_filesize > 0) {
-                // System.out.println("dc: rfs: " + remaining_filesize);
                 byte[] chunk = new byte[Math.min(remaining_filesize, this.chunksize)];
                 fis.read(chunk);
                 remaining_filesize -= chunk.length;
                 Request request = (new Request("updata")).add_obj("chunk", chunk);
                 Response response = this.get_response(request);
-                if (response.getCode() != ResponseCode.SUCCESSFUL_OPERATION) {
+                if (response.get_code() != ResponseCode.SUCCESSFUL_OPERATION) {
                     fis.close();
                     return false;
                 }
             }
             fis.close();
         } catch (Exception exception) {
-            exception.printStackTrace();
+            ClientLoader.debug(exception);
             return false;
         }
-        System.out.println("dc: send chunks complete.");
         return true;
     }
 
@@ -97,15 +89,14 @@ class DataConnection implements Runnable {
                 response = (Response) this.network_util.read();
                 break;
             } catch (Exception exception) {
-                // exception.printStackTrace();
+                // Client.debug(exception);
                 if (exception instanceof SocketTimeoutException) {
                     while (true) {
                         try {
                             this.network_util.write(new Request("timeout"));
-                            System.out.println("timeout");
                             System.exit(0);
                         } catch (Exception exception2) {
-                            exception2.printStackTrace();
+                            ClientLoader.debug(exception2);
                         }
                     }
                 }

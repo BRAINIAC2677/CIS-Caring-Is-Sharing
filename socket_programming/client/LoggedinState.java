@@ -13,7 +13,8 @@ class LoggedinState implements CLIState {
     public void showPrompt() {
         User currentUser = this.cli.getCurrentUser();
         if (currentUser != null) {
-            String prompt = currentUser.getUsername() + "@cis:~" + currentUser.getWorkingDir();
+            String prompt = ClientLoader.BLUE_ANSI + currentUser.getUsername() + "@cis:~" + currentUser.getWorkingDir()
+                    + ClientLoader.RESET_ANSI;
             System.out.println(prompt);
         }
     }

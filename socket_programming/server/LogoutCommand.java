@@ -21,7 +21,7 @@ public class LogoutCommand implements Command {
                 response = new Response(ResponseCode.SUCCESSFUL_LOGOUT);
 
             } catch (Exception exception) {
-                exception.printStackTrace();
+                ServerLoader.debug(exception);
             }
         }
         return response;
