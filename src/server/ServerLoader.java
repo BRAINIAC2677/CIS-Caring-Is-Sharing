@@ -9,7 +9,7 @@ class ServerLoader {
     public static final int max_buffersize = 1000000000;
     public static final int min_chunksize = 100000;
     public static final int max_chunksize = 200000;
-    public static final String storage_directory = "socket_programming/storage/"; // relative to project directory
+    public static final String storage_directory = "src/storage/"; // relative to project directory
     public static final int root_directory_name_count = Paths.get(storage_directory).getNameCount() + 1;
     public static final boolean is_debug_mode = false;
 
