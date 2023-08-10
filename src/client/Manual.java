@@ -363,6 +363,7 @@ class Manual {
                 man_pages.put("reg", reg);
                 man_pages.put("man", man);
                 man_pages.put("up", up);
+                man_pages.put("down", down);
         }
 
         private static String cat_manual() {
